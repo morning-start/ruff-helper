@@ -1,7 +1,7 @@
 {
     "name": "ruff-helper",
     "displayName": "ruff-helper",
-    "description": "ruff helper",
+    "description": "A helper for ruff.toml configuration generation",
     "version": "0.0.1",
     "publisher": "morning-start",
     "engines": {
@@ -10,6 +10,8 @@
     "categories": [
         "Other"
     ],
+    "repository": "https://github.com/morning-start/ruff-helper",
+    "icon": "logo.png",
     "activationEvents": [
         "onLanguage:toml"
     ],
