@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skills": {
+    "vscode-extension-api": {
+      "source": "morning-start/book-skills",
+      "sourceType": "github",
+      "computedHash": "fe36a919ae49a00e89dc8b97c3d0c1541343b054a906e51dc8898206451ef2b9"
+    },
+    "vscode-extension-basics": {
+      "source": "morning-start/book-skills",
+      "sourceType": "github",
+      "computedHash": "5b56c2ce6fa740427bdb68f6e03e0c73e3202dba0e514c67b925c019f39c3903"
+    },
+    "vscode-extension-publishing": {
+      "source": "morning-start/book-skills",
+      "sourceType": "github",
+      "computedHash": "79ee911daf2de29e4d30338643c424d94d9441fd78b37c3f322b09d9a3875171"
+    },
+    "vscode-extension-treeview": {
+      "source": "morning-start/book-skills",
+      "sourceType": "github",
+      "computedHash": "2c161bbcea7e3b22d0163288f15cc60e9fe1ee589007777c658be401309fbfec"
+    },
+    "vscode-extension-webview": {
+      "source": "morning-start/book-skills",
+      "sourceType": "github",
+      "computedHash": "e635267834a54bb9619256129665a28ecb80b98e929864028950139ce7d75720"
+    }
+  }
+}

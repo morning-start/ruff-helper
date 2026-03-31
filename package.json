@@ -1,48 +1,237 @@
 {
-  "name": "ruff-helper",
-  "displayName": "ruff-helper",
-  "description": "ruff helper",
-  "version": "0.0.1",
-  "engines": {
-    "vscode": "^1.110.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [],
-  "main": "./dist/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "ruff-helper.helloWorld",
-        "title": "Hello World"
-      }
-    ]
-  },
-  "scripts": {
-    "vscode:prepublish": "yarn run package",
-    "compile": "yarn run check-types && yarn run lint && node esbuild.js",
-    "watch": "npm-run-all -p watch:*",
-    "watch:esbuild": "node esbuild.js --watch",
-    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "yarn run check-types && yarn run lint && node esbuild.js --production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
-    "check-types": "tsc --noEmit",
-    "lint": "eslint src",
-    "test": "vscode-test"
-  },
-  "devDependencies": {
-    "@types/vscode": "^1.110.0",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "22.x",
-    "typescript-eslint": "^8.56.1",
-    "eslint": "^9.39.3",
-    "esbuild": "^0.27.3",
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
-  }
+    "name": "ruff-helper",
+    "displayName": "ruff-helper",
+    "description": "ruff helper",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.107.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "ruff-helper.generateConfig",
+                "title": "Generate ruff.toml Configuration"
+            }
+        ],
+        "configuration": {
+            "title": "Ruff Helper",
+            "properties": {
+                "ruffHelper.select": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [
+                        "E",
+                        "W",
+                        "F",
+                        "I",
+                        "B",
+                        "RUF"
+                    ],
+                    "description": "Select rules to enable. Use linter codes (E, F, I) or rule codes (F401, E501). Tip: E=errors, W=pycodestyle, F=pyflakes, I=isort, B=flake8-bugbear, RUF=ruff rules"
+                },
+                "ruffHelper.ignore": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [
+                        "E501",
+                        "F401",
+                        "F841",
+                        "B905"
+                    ],
+                    "description": "Disable specific rules. E501=line too long, F401=imported but unused, F841=unused variable, B905=unclosed file"
+                },
+                "ruffHelper.extendSelect": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Add rules to the default selection without replacing it"
+                },
+                "ruffHelper.extendIgnore": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Add rules to the default ignore list"
+                },
+                "ruffHelper.fixable": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [
+                        "ALL"
+                    ],
+                    "description": "Only include these rules if they are auto-fixable. Use ALL to include all fixable rules"
+                },
+                "ruffHelper.unfixable": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Only include these rules if they are NOT auto-fixable"
+                },
+                "ruffHelper.extendFixable": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Add to the list of fixable rules"
+                },
+                "ruffHelper.extendUnfixable": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Add to the list of unfixable rules"
+                },
+                "ruffHelper.perFileIgnores": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Ignore rules for specific files. Example: {\"**/migrations/**/*.py\": [\"E501\", \"F401\"]}"
+                },
+                "ruffHelper.extendPerFileIgnores": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Extend per-file ignores (added to existing per-file-ignores in ruff.toml)"
+                },
+                "ruffHelper.extendExclude": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [
+                        ".*",
+                        "__pycache__",
+                        "build",
+                        "dist",
+                        "*.ipynb"
+                    ],
+                    "description": "Exclude files and directories from processing. Supports glob patterns"
+                },
+                "ruffHelper.targetVersion": {
+                    "type": "string",
+                    "enum": [
+                        "py38",
+                        "py39",
+                        "py310",
+                        "py311",
+                        "py312",
+                        "py313",
+                        "py314"
+                    ],
+                    "default": "py312",
+                    "description": "Minimum Python version to support. Ruff will suggest fixes based on this version."
+                },
+                "ruffHelper.lineLength": {
+                    "type": "number",
+                    "default": 88,
+                    "description": "Maximum line length. Ruff's default is 88. Common alternatives: 79, 100, 120"
+                },
+                "ruffHelper.indentWidth": {
+                    "type": "number",
+                    "default": 4,
+                    "description": "Indentation width (spaces per indent level)"
+                },
+                "ruffHelper.fix": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically fix violations where possible (use --unsafe-fixes for more aggressive fixes)"
+                },
+                "ruffHelper.unsafeFixes": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Include fixes that may change code behavior (e.g., removing unused imports)"
+                },
+                "ruffHelper.exitZero": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Exit with code 0 even when violations are found"
+                },
+                "ruffHelper.format": {
+                    "type": "string",
+                    "enum": [
+                        "json",
+                        "text",
+                        "sarif",
+                        "grouped",
+                        "json-lines"
+                    ],
+                    "default": "text",
+                    "description": "Output format for ruff results"
+                },
+                "ruffHelper.showDecorations": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show inline decoration with rule name after rule codes in ruff.toml"
+                },
+                "ruffHelper.quoteStyle": {
+                    "type": "string",
+                    "enum": [
+                        "double",
+                        "single",
+                        "preserve"
+                    ],
+                    "default": "double",
+                    "description": "Quote style for strings. double=Python community standard"
+                },
+                "ruffHelper.indentStyle": {
+                    "type": "string",
+                    "enum": [
+                        "space",
+                        "tab"
+                    ],
+                    "default": "space",
+                    "description": "Indentation style"
+                },
+                "ruffHelper.skipMagicTrailingComma": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip magic trailing comma (trailing comma after last item in collection)"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "bun run package",
+        "compile": "bun run check-types && bun run lint && node esbuild.js",
+        "watch": "npm-run-all -p watch:*",
+        "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+        "package": "bun run check-types && bun run lint && node esbuild.js --production",
+        "compile-tests": "tsc -p . --outDir out",
+        "watch-tests": "tsc -p . -w --outDir out",
+        "pretest": "bun run compile-tests && bun run compile && bun run lint",
+        "check-types": "tsc --noEmit",
+        "lint": "eslint src",
+        "test": "vscode-test"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.107.0",
+        "@types/mocha": "^10.0.10",
+        "@types/node": "25.2.1",
+        "typescript-eslint": "^8.54.0",
+        "eslint": "^9.26.0",
+        "esbuild": "^0.27.3",
+        "npm-run-all": "^4.1.5",
+        "typescript": "^5.9.3",
+        "@vscode/test-cli": "^0.0.12",
+        "@vscode/test-electron": "^2.5.2"
+    },
+    "dependencies": {
+        "@iarna/toml": "^2.2.5"
+    }
 }

@@ -1,26 +1,174 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
+import {
+    createRuleDecorator,
+    disposeRuleDecorator,
+    updateDecorations,
+} from "./decorator";
+import {
+    generateRuffToml,
+    getConfigFromSettings,
+    getTargetUri,
+} from "./config";
+import { findRule } from "./utils";
+import { prefixToLinterMap } from "./rules";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+const outputChannel = vscode.window.createOutputChannel("Ruff Ignore Helper");
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "ruff-helper" is now active!');
+export function activate(context: vscode.ExtensionContext): void {
+    outputChannel.appendLine("Ruff Ignore Helper is now active.");
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('ruff-helper.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from ruff-helper!');
-	});
+    const ruleDecorator = createRuleDecorator();
 
-	context.subscriptions.push(disposable);
+    const hoverProvider = vscode.languages.registerHoverProvider(
+        [
+            { language: "toml", pattern: "**/pyproject.toml" },
+            { language: "toml", pattern: "**/ruff.toml" },
+        ],
+        {
+            provideHover(document, position, _token) {
+                const range = document.getWordRangeAtPosition(
+                    position,
+                    /["'][A-Z0-9]+["']/,
+                );
+                if (!range) {
+                    return null;
+                }
+
+                const text = document.getText(range);
+                const ruleCode = text.replaceAll(/["']/g, "");
+
+                const rule = findRule(ruleCode);
+
+                if (rule) {
+                    return new vscode.Hover(
+                        new vscode.MarkdownString(rule.explanation),
+                        range,
+                    );
+                }
+
+                const linter = prefixToLinterMap.get(ruleCode);
+                if (linter) {
+                    return new vscode.Hover(
+                        `${linter} (No detailed explanation available)`,
+                        range,
+                    );
+                }
+
+                return null;
+            },
+        },
+    );
+
+    const activeEditorListener = vscode.window.onDidChangeActiveTextEditor(
+        (editor) => {
+            if (editor) {
+                outputChannel.appendLine(
+                    `Active editor changed to ${editor.document.fileName}`,
+                );
+                updateDecorations(editor);
+            }
+        },
+    );
+
+    const documentChangeListener = vscode.workspace.onDidChangeTextDocument(
+        (event) => {
+            const editor = vscode.window.activeTextEditor;
+            if (editor && event.document === editor.document) {
+                updateDecorations(editor);
+            }
+        },
+    );
+
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+        updateDecorations(activeEditor);
+    }
+
+    const generateConfigCommand = vscode.commands.registerCommand(
+        "ruff-helper.generateConfig",
+        async () => {
+            try {
+                const config = getConfigFromSettings();
+                const ruffTomlContent = generateRuffToml(config);
+
+                if (!ruffTomlContent.trim()) {
+                    vscode.window.showInformationMessage(
+                        "No configuration options are set. Please configure Ruff Helper in VS Code settings first.",
+                    );
+                    return;
+                }
+
+                const targetUri = await getTargetUri();
+                if (!targetUri) {
+                    vscode.window.showInformationMessage("No folder selected.");
+                    return;
+                }
+
+                const ruffTomlUri = vscode.Uri.joinPath(targetUri, "ruff.toml");
+                outputChannel.appendLine(`Writing to: ${ruffTomlUri.fsPath}`);
+
+                try {
+                    await vscode.workspace.fs.writeFile(
+                        ruffTomlUri,
+                        Buffer.from(ruffTomlContent, "utf-8"),
+                    );
+                    outputChannel.appendLine(
+                        `Successfully wrote to: ${ruffTomlUri.fsPath}`,
+                    );
+                } catch (writeError) {
+                    vscode.window.showErrorMessage(
+                        `Error writing file: ${writeError}`,
+                    );
+                    outputChannel.appendLine(
+                        `Error writing file: ${writeError}`,
+                    );
+                    return;
+                }
+
+                try {
+                    const doc =
+                        await vscode.workspace.openTextDocument(ruffTomlUri);
+                    outputChannel.appendLine(
+                        `Opened document: ${doc.uri.fsPath}`,
+                    );
+                    await vscode.window.showTextDocument(doc);
+                    outputChannel.appendLine(
+                        `Shown document: ${doc.uri.fsPath}`,
+                    );
+                } catch (openError) {
+                    vscode.window.showErrorMessage(
+                        `Error opening file: ${openError}`,
+                    );
+                    outputChannel.appendLine(
+                        `Error opening file: ${openError}`,
+                    );
+                }
+
+                outputChannel.appendLine(
+                    `Generated ruff.toml at ${ruffTomlUri.fsPath}`,
+                );
+                vscode.window.showInformationMessage(
+                    `ruff.toml created at ${ruffTomlUri.fsPath}`,
+                );
+            } catch (error) {
+                vscode.window.showErrorMessage(
+                    `Error generating config: ${error}`,
+                );
+                outputChannel.appendLine(`Error generating config: ${error}`);
+            }
+        },
+    );
+
+    context.subscriptions.push(
+        ruleDecorator,
+        activeEditorListener,
+        documentChangeListener,
+        hoverProvider,
+        generateConfigCommand,
+    );
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate(): void {
+    // 不再需要手动调用disposeRuleDecorator()，因为ruleDecorator已经被添加到context.subscriptions中
+    // VS Code会自动处理dispose
+}
