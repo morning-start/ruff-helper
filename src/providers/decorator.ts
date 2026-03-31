@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as toml from "@iarna/toml";
-import { findRule, getLinterForRule, kebabToTitleCase } from "./utils";
+import { findRule, kebabToTitleCase } from "../utils";
+import { getExplanation, getName, getLinter } from "../i18n/index";
 
 let ruleDecorator: vscode.TextEditorDecorationType | undefined;
 
@@ -21,7 +22,6 @@ export function createRuleDecorator(): vscode.TextEditorDecorationType {
 }
 
 export function disposeRuleDecorator(): void {
-    // 只有当ruleDecorator存在且未被dispose时才执行
     if (ruleDecorator && !ruleDecorator.dispose) {
         ruleDecorator.dispose();
         ruleDecorator = undefined;
@@ -84,16 +84,15 @@ function createDecoration(
     isAfterBracket: boolean,
 ): vscode.DecorationOptions {
     const ruleInfo = findRule(rule);
-    const linter = getLinterForRule(rule);
-    const contentText = ruleInfo
-        ? ` ${kebabToTitleCase(ruleInfo.name)}`
-        : linter
-          ? ` ${kebabToTitleCase(linter)}`
-          : "";
+    let contentText = "";
+    let hoverMessage: vscode.MarkdownString | undefined;
 
-    const hoverMessage = ruleInfo
-        ? new vscode.MarkdownString(ruleInfo.explanation)
-        : undefined;
+    if (ruleInfo) {
+        const translatedName = getName(ruleInfo);
+        const translatedLinter = getLinter(ruleInfo);
+        contentText = ` ${kebabToTitleCase(translatedName)} (${translatedLinter})`;
+        hoverMessage = new vscode.MarkdownString(getExplanation(ruleInfo));
+    }
 
     if (isAfterBracket) {
         return {

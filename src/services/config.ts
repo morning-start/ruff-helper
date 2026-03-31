@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import * as path from "path";
 
 const CONFIG_KEY_MAP: Record<string, string> = {
     select: "select",
@@ -211,7 +210,6 @@ export function generateRuffToml(config: Record<string, any>): string {
 export async function getTargetUri(): Promise<vscode.Uri | undefined> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
 
-    // 优先使用第一个工作区文件夹（当前工作目录/文件夹根目录）
     if (workspaceFolders && workspaceFolders.length > 0) {
         const rootUri = workspaceFolders[0].uri;
         console.log(
@@ -220,7 +218,6 @@ export async function getTargetUri(): Promise<vscode.Uri | undefined> {
         return rootUri;
     }
 
-    // 如果没有工作区文件夹，尝试使用当前打开文件所在的目录
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor && activeEditor.document.fileName) {
         const currentFileUri = vscode.Uri.file(activeEditor.document.fileName);
@@ -234,7 +231,6 @@ export async function getTargetUri(): Promise<vscode.Uri | undefined> {
         return currentDirUri;
     }
 
-    // 如果既没有工作区文件夹，也没有打开的文件，使用当前工作目录
     try {
         const currentWorkingDir = process.cwd();
         const currentDirUri = vscode.Uri.file(currentWorkingDir);

@@ -1,5 +1,3 @@
-import * as vscode from "vscode";
-
 export interface RuffConfigOption {
     name: string;
     type: "array" | "string" | "boolean" | "nest";

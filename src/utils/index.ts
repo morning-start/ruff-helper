@@ -1,5 +1,5 @@
-import type { RuffRule } from "./rules";
-import { rules, prefixToLinterMap } from "./rules";
+import type { RuffRule } from "../data/rules";
+import { rules } from "../data/rules";
 
 export function kebabToTitleCase(str: string): string {
     return str
@@ -13,7 +13,8 @@ export function findRule(ruleCode: string): RuffRule | undefined {
 }
 
 export function getLinterForRule(ruleCode: string): string | undefined {
-    return prefixToLinterMap.get(ruleCode);
+    const prefix = ruleCode.match(/^[A-Z]+/)?.[0];
+    return prefix;
 }
 
 export function getLinters(): string[] {

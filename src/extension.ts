@@ -3,14 +3,15 @@ import {
     createRuleDecorator,
     disposeRuleDecorator,
     updateDecorations,
-} from "./decorator";
+} from "./providers/decorator";
 import {
     generateRuffToml,
     getConfigFromSettings,
     getTargetUri,
-} from "./config";
+} from "./services/config";
 import { findRule } from "./utils";
-import { prefixToLinterMap } from "./rules";
+import { rules, prefixToLinterMap } from "./data/rules";
+import { getExplanation, getLinterExplanation } from "./i18n/index";
 
 const outputChannel = vscode.window.createOutputChannel("Ruff Ignore Helper");
 
@@ -41,7 +42,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
                 if (rule) {
                     return new vscode.Hover(
-                        new vscode.MarkdownString(rule.explanation),
+                        new vscode.MarkdownString(getExplanation(rule)),
                         range,
                     );
                 }
@@ -49,7 +50,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 const linter = prefixToLinterMap.get(ruleCode);
                 if (linter) {
                     return new vscode.Hover(
-                        `${linter} (No detailed explanation available)`,
+                        getLinterExplanation(linter),
                         range,
                     );
                 }
@@ -169,6 +170,5 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): void {
-    // 不再需要手动调用disposeRuleDecorator()，因为ruleDecorator已经被添加到context.subscriptions中
-    // VS Code会自动处理dispose
+    disposeRuleDecorator();
 }
