@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as path from "path";
 
 const CONFIG_KEY_MAP: Record<string, string> = {
     select: "select",
@@ -106,39 +107,102 @@ function formatPerFileIgnores(
     return output;
 }
 
+const TOP_LEVEL_CONFIGS = ["lineLength", "targetVersion", "extendExclude"];
+
+const LINT_CONFIGS = [
+    "select",
+    "ignore",
+    "extendSelect",
+    "extendIgnore",
+    "fixable",
+    "unfixable",
+    "extendFixable",
+    "extendUnfixable",
+    "perFileIgnores",
+    "extendPerFileIgnores",
+];
+
+const FORMAT_CONFIGS = ["quoteStyle", "indentStyle", "skipMagicTrailingComma"];
+
+function formatConfigValue(key: string, value: any, ruffKey: string): string {
+    if (typeof value === "boolean") {
+        return `${ruffKey} = ${value}\n`;
+    } else if (typeof value === "number") {
+        return `${ruffKey} = ${value}\n`;
+    } else if (Array.isArray(value) && value.length > 0) {
+        return formatArrayValue(ruffKey, value);
+    } else if (typeof value === "string" && value) {
+        return `${ruffKey} = "${value}"\n`;
+    }
+    return "";
+}
+
 export function generateRuffToml(config: Record<string, any>): string {
     let output = "";
 
-    for (const [vscodeKey, ruffKey] of Object.entries(CONFIG_KEY_MAP)) {
-        if (config[vscodeKey] === undefined) {
-            continue;
-        }
-
-        const value = config[vscodeKey];
-
-        if (typeof value === "boolean") {
-            output += `${ruffKey} = ${value}\n`;
-        } else if (typeof value === "number") {
-            output += `${ruffKey} = ${value}\n`;
-        } else if (Array.isArray(value) && value.length > 0) {
-            output += formatArrayValue(ruffKey, value);
-        } else if (typeof value === "string" && value) {
-            output += `${ruffKey} = "${value}"\n`;
-        }
-    }
-
-    if (config["perFileIgnores"]) {
-        const value = config["perFileIgnores"];
-        if (typeof value === "object" && Object.keys(value).length > 0) {
-            output += formatPerFileIgnores(value, "per-file-ignores");
+    for (const vscodeKey of TOP_LEVEL_CONFIGS) {
+        const ruffKey = CONFIG_KEY_MAP[vscodeKey];
+        if (config[vscodeKey] !== undefined && ruffKey) {
+            const value = config[vscodeKey];
+            if (
+                vscodeKey === "extendExclude" &&
+                Array.isArray(value) &&
+                value.length > 0
+            ) {
+                output += formatArrayValue(ruffKey, value);
+            } else if (
+                vscodeKey === "lineLength" ||
+                vscodeKey === "targetVersion"
+            ) {
+                output += formatConfigValue(vscodeKey, value, ruffKey);
+            }
         }
     }
 
-    if (config["extendPerFileIgnores"]) {
-        const value = config["extendPerFileIgnores"];
-        if (typeof value === "object" && Object.keys(value).length > 0) {
-            output += formatPerFileIgnores(value, "extend-per-file-ignores");
+    const lintConfigs: string[] = [];
+    for (const vscodeKey of LINT_CONFIGS) {
+        const ruffKey = CONFIG_KEY_MAP[vscodeKey];
+        if (config[vscodeKey] !== undefined && ruffKey) {
+            const value = config[vscodeKey];
+            if (
+                vscodeKey === "perFileIgnores" ||
+                vscodeKey === "extendPerFileIgnores"
+            ) {
+                if (
+                    typeof value === "object" &&
+                    Object.keys(value).length > 0
+                ) {
+                    lintConfigs.push(formatPerFileIgnores(value, ruffKey));
+                }
+            } else {
+                const formatted = formatConfigValue(vscodeKey, value, ruffKey);
+                if (formatted) {
+                    lintConfigs.push(formatted);
+                }
+            }
         }
+    }
+
+    if (lintConfigs.length > 0) {
+        output += "\n[lint]\n";
+        output += lintConfigs.join("");
+    }
+
+    const formatConfigs: string[] = [];
+    for (const vscodeKey of FORMAT_CONFIGS) {
+        const ruffKey = CONFIG_KEY_MAP[vscodeKey];
+        if (config[vscodeKey] !== undefined && ruffKey) {
+            const value = config[vscodeKey];
+            const formatted = formatConfigValue(vscodeKey, value, ruffKey);
+            if (formatted) {
+                formatConfigs.push(formatted);
+            }
+        }
+    }
+
+    if (formatConfigs.length > 0) {
+        output += "\n[format]\n";
+        output += formatConfigs.join("");
     }
 
     return output;
@@ -146,8 +210,6 @@ export function generateRuffToml(config: Record<string, any>): string {
 
 export async function getTargetUri(): Promise<vscode.Uri | undefined> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
-    // dirroot
-    console.log(workspaceFolders);
 
     // 优先使用第一个工作区文件夹（当前工作目录/文件夹根目录）
     if (workspaceFolders && workspaceFolders.length > 0) {
@@ -172,14 +234,14 @@ export async function getTargetUri(): Promise<vscode.Uri | undefined> {
         return currentDirUri;
     }
 
-    // 弹出文件夹选择对话框
-    console.log("No workspace folders or open files, showing open dialog");
-    const selected = await vscode.window.showOpenDialog({
-        canSelectFolders: true,
-        canSelectFiles: false,
-        openLabel: "Select folder to save ruff.toml",
-    });
-
-    console.log(`Selected folder: ${selected?.[0]?.fsPath}`);
-    return selected?.[0];
+    // 如果既没有工作区文件夹，也没有打开的文件，使用当前工作目录
+    try {
+        const currentWorkingDir = process.cwd();
+        const currentDirUri = vscode.Uri.file(currentWorkingDir);
+        console.log(`Using current working directory: ${currentDirUri.fsPath}`);
+        return currentDirUri;
+    } catch (error) {
+        console.log(`Error getting current working directory: ${error}`);
+        return undefined;
+    }
 }

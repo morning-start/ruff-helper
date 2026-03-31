@@ -3,13 +3,16 @@
     "displayName": "ruff-helper",
     "description": "ruff helper",
     "version": "0.0.1",
+    "publisher": "morning-start",
     "engines": {
         "vscode": "^1.107.0"
     },
     "categories": [
         "Other"
     ],
-    "activationEvents": [],
+    "activationEvents": [
+        "onLanguage:toml"
+    ],
     "main": "./dist/extension.js",
     "contributes": {
         "commands": [
