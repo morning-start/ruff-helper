@@ -22,7 +22,7 @@ export function createRuleDecorator(): vscode.TextEditorDecorationType {
 }
 
 export function disposeRuleDecorator(): void {
-    if (ruleDecorator && !ruleDecorator.dispose) {
+    if (ruleDecorator) {
         ruleDecorator.dispose();
         ruleDecorator = undefined;
     }

@@ -1,7 +1,12 @@
 import * as vscode from "vscode";
 import type { RuffRule } from "../data/rules";
 import type { SupportedLanguage, TranslationField } from "./provider";
-import { enTranslations, zhCNTranslations } from "./locales";
+import {
+    enTranslations,
+    zhCNTranslations,
+    enLinterTranslations,
+    zhCNLinterTranslations,
+} from "./locales";
 
 export type { SupportedLanguage, TranslationField };
 
@@ -57,10 +62,34 @@ export function getFix(rule: RuffRule): string {
     return t(rule, "fix") as string;
 }
 
+function getLinterTranslation(linter: string): {
+    name: string;
+    description?: string;
+} {
+    const linterKey = linter.toLowerCase().replace(/-/g, "_");
+    const lang = getCurrentLanguage();
+
+    if (lang === "zh-CN") {
+        return zhCNLinterTranslations[linterKey] || { name: linter };
+    }
+
+    return enLinterTranslations[linterKey] || { name: linter };
+}
+
+export function getLinterName(linter: string): string {
+    return getLinterTranslation(linter).name;
+}
+
 export function getLinterExplanation(linter: string): string {
+    const { name, description } = getLinterTranslation(linter);
+
+    if (description) {
+        return `**${name}**\n\n${description}`;
+    }
+
     const lang = getCurrentLanguage();
     if (lang === "zh-CN") {
-        return `${linter}（暂无详细解释）`;
+        return `**${name}**（暂无详细解释）`;
     }
-    return `${linter} (No detailed explanation available)`;
+    return `**${name}** (No detailed explanation available)`;
 }

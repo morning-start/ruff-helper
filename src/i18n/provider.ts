@@ -18,3 +18,10 @@ export interface RuleTranslation {
 }
 
 export type Translations = Record<string, RuleTranslation>;
+
+export interface LinterTranslation {
+    name: string;
+    description?: string;
+}
+
+export type LinterTranslations = Record<string, LinterTranslation>;
