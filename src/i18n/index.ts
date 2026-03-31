@@ -1,14 +1,32 @@
 import * as vscode from "vscode";
-import type { RuffRule } from "../data/rules";
-import type { SupportedLanguage, TranslationField } from "./provider";
-import {
-    enTranslations,
-    zhCNTranslations,
-    enLinterTranslations,
-    zhCNLinterTranslations,
-} from "./locales";
+import enData from "./en-us.json";
+import zhCNData from "./zh-cn.json";
 
-export type { SupportedLanguage, TranslationField };
+export type SupportedLanguage = "en" | "zh-CN";
+
+export type TranslationField =
+    | "name"
+    | "linter"
+    | "summary"
+    | "message_formats"
+    | "fix"
+    | "explanation";
+
+export interface RuffRule {
+    code: string;
+    name: string;
+    linter: string;
+    summary: string;
+    message_formats: string[];
+    fix: string;
+    explanation: string;
+    preview: boolean;
+}
+
+export type Translations = Record<string, Partial<RuffRule>>;
+
+export const enTranslations: Translations = enData as Translations;
+export const zhCNTranslations: Translations = zhCNData as Translations;
 
 function getCurrentLanguage(): SupportedLanguage {
     const vscodeLang = vscode.env.language;
@@ -21,22 +39,14 @@ function getCurrentLanguage(): SupportedLanguage {
 export function t(rule: RuffRule, field: TranslationField): string | string[] {
     const lang = getCurrentLanguage();
 
-    if (lang === "zh-CN") {
-        const zhRule = zhCNTranslations[rule.code];
-        if (zhRule) {
-            const value = (zhRule as any)[field];
-            if (value !== undefined) {
-                return value;
-            }
-        }
+    const zhTranslation = zhCNTranslations[rule.code];
+    if (zhTranslation && (zhTranslation as any)[field] !== undefined) {
+        return (zhTranslation as any)[field];
     }
 
-    const enRule = enTranslations[rule.code];
-    if (enRule) {
-        const value = (enRule as any)[field];
-        if (value !== undefined) {
-            return value;
-        }
+    const enTranslation = enTranslations[rule.code];
+    if (enTranslation && (enTranslation as any)[field] !== undefined) {
+        return (enTranslation as any)[field];
     }
 
     return (rule as any)[field] ?? "";
@@ -62,34 +72,21 @@ export function getFix(rule: RuffRule): string {
     return t(rule, "fix") as string;
 }
 
-function getLinterTranslation(linter: string): {
-    name: string;
-    description?: string;
-} {
-    const linterKey = linter.toLowerCase().replace(/-/g, "_");
+export function getLinterExplanation(linterCode: string): string {
     const lang = getCurrentLanguage();
 
+    const zhTranslation = zhCNTranslations[linterCode];
+    if (zhTranslation?.explanation) {
+        return zhTranslation.explanation;
+    }
+
+    const enTranslation = enTranslations[linterCode];
+    if (enTranslation?.explanation) {
+        return enTranslation.explanation;
+    }
+
     if (lang === "zh-CN") {
-        return zhCNLinterTranslations[linterKey] || { name: linter };
+        return `${linterCode}（暂无详细解释）`;
     }
-
-    return enLinterTranslations[linterKey] || { name: linter };
-}
-
-export function getLinterName(linter: string): string {
-    return getLinterTranslation(linter).name;
-}
-
-export function getLinterExplanation(linter: string): string {
-    const { name, description } = getLinterTranslation(linter);
-
-    if (description) {
-        return `**${name}**\n\n${description}`;
-    }
-
-    const lang = getCurrentLanguage();
-    if (lang === "zh-CN") {
-        return `**${name}**（暂无详细解释）`;
-    }
-    return `**${name}** (No detailed explanation available)`;
+    return `${linterCode} (No detailed explanation available)`;
 }

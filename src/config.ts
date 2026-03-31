@@ -123,7 +123,11 @@ const LINT_CONFIGS = [
 
 const FORMAT_CONFIGS = ["quoteStyle", "indentStyle", "skipMagicTrailingComma"];
 
-function formatConfigValue(key: string, value: any, ruffKey: string): string {
+function formatConfigValue(
+    key: string,
+    value: any,
+    ruffKey: string,
+): string {
     if (typeof value === "boolean") {
         return `${ruffKey} = ${value}\n`;
     } else if (typeof value === "number") {
@@ -174,7 +178,11 @@ export function generateRuffToml(config: Record<string, any>): string {
                     lintConfigs.push(formatPerFileIgnores(value, ruffKey));
                 }
             } else {
-                const formatted = formatConfigValue(vscodeKey, value, ruffKey);
+                const formatted = formatConfigValue(
+                    vscodeKey,
+                    value,
+                    ruffKey,
+                );
                 if (formatted) {
                     lintConfigs.push(formatted);
                 }
@@ -220,7 +228,9 @@ export async function getTargetUri(): Promise<vscode.Uri | undefined> {
 
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor && activeEditor.document.fileName) {
-        const currentFileUri = vscode.Uri.file(activeEditor.document.fileName);
+        const currentFileUri = vscode.Uri.file(
+            activeEditor.document.fileName,
+        );
         const currentDirUri = currentFileUri.with({
             path: currentFileUri.path.substring(
                 0,
@@ -234,7 +244,9 @@ export async function getTargetUri(): Promise<vscode.Uri | undefined> {
     try {
         const currentWorkingDir = process.cwd();
         const currentDirUri = vscode.Uri.file(currentWorkingDir);
-        console.log(`Using current working directory: ${currentDirUri.fsPath}`);
+        console.log(
+            `Using current working directory: ${currentDirUri.fsPath}`,
+        );
         return currentDirUri;
     } catch (error) {
         console.log(`Error getting current working directory: ${error}`);

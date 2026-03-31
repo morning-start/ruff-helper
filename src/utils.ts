@@ -1,5 +1,5 @@
-import type { RuffRule } from "../data/rules";
-import { rules } from "../data/rules";
+import type { RuffRule } from "./data/rules";
+import { rules } from "./data/rules";
 
 export function kebabToTitleCase(str: string): string {
     return str

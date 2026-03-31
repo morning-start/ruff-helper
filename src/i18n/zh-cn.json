@@ -1,0 +1,96 @@
+{
+    "AIR001": {
+        "name": "airflow-variable-name-task-id-mismatch",
+        "linter": "Airflow",
+        "summary": "任务变量名应与 `task_id` 匹配",
+        "message_formats": ["任务变量名应与 `task_id`: \"{task_id}\" 匹配"],
+        "fix": "暂无修复方法",
+        "explanation": "## 规则说明\n检查任务变量名是否与 `task_id` 值匹配。\n\n## 为什么不好\n为了一致性，任务变量名应与 `task_id` 值匹配，便于跟踪 DAG 流程。\n\n## 示例\n```python\nfrom airflow.operators import PythonOperator\n\n\nincorrect_name = PythonOperator(task_id=\"my_task\")\n```\n\n使用 instead:\n```python\nfrom airflow.operators import PythonOperator\n\n\nmy_task = PythonOperator(task_id=\"my_task\")\n```",
+        "preview": false
+    },
+    "AIR301": {
+        "name": "airflow-dag-no-schedule-argument",
+        "linter": "Airflow",
+        "summary": "DAG 应有明确的 `schedule` 参数",
+        "message_formats": ["DAG 应有明确的 `schedule` 参数"],
+        "fix": "暂无修复方法",
+        "explanation": "## 规则说明\n检查 DAG 是否有明确的 `schedule` 参数。\n\n## 为什么不好\nAirflow 2 的默认 `schedule` 值是 `timedelta(days=1)`，这几乎从来不是用户想要的。Airflow 3 将默认值改为 *None*，会破坏使用隐式默认值的现有 DAG。\n\n## 示例\n```python\nfrom airflow import DAG\n\n\n# 使用隐式默认 schedule\ndag = DAG(dag_id=\"my_dag\")\n```\n\n使用 instead:\n```python\nfrom datetime import timedelta\n\nfrom airflow import DAG\n\n\ndag = DAG(dag_id=\"my_dag\", schedule=timedelta(days=1))\n```",
+        "preview": false
+    },
+    "AIR302": {
+        "name": "airflow3-removal",
+        "linter": "Airflow",
+        "summary": "`{deprecated}` 在 Airflow 3.0 中已移除",
+        "message_formats": [
+            "`{deprecated}` 在 Airflow 3.0 中已移除",
+            "`{deprecated}` 在 Airflow 3.0 中已移除",
+            "`{deprecated}` 在 Airflow 3.0 中已移除; {message}"
+        ],
+        "fix": "有时可用",
+        "explanation": "## 规则说明\n检查是否使用了已弃用的 Airflow 函数和值。\n\n## 为什么不好\nAirflow 3.0 移除了各种已弃用的函数、成员和其他值。一些有更现代的替代品，另一些被认为太 niche 不值得在 Airflow 中维护。\n\n## 示例\n```python\nfrom airflow.utils.dates import days_ago\n\n\nyesterday = days_ago(today, 1)\n```\n\n使用 instead:\n```python\nfrom datetime import timedelta\n\n\nyesterday = today - timedelta(days=1)\n```",
+        "preview": false
+    },
+    "E501": {
+        "name": "line-too-long",
+        "linter": "pycodestyle",
+        "summary": "代码行过长",
+        "message_formats": ["行超过 {LINE_LENGTH} 个字符 ({_LINE} > {LINE_LENGTH})"],
+        "fix": "可用（手动修复）",
+        "explanation": "## 规则说明\n检查代码行长度是否超过最大限制。\n\n## 为什么不好\n过长的代码行会影响可读性和可维护性。\n\n## 示例\n```python\n# 过长的行\nthis_is_a_very_long_line_that_exceeds_the_maximum_line_length\n```\n\n使用 instead:\n```python\n# 拆分成多行\nthis_is_a_shorter_line\n```",
+        "preview": false
+    },
+    "E": {
+        "name": "E",
+        "linter": "pycodestyle",
+        "summary": "pycodestyle linter",
+        "message_formats": [],
+        "fix": "N/A",
+        "explanation": "## pycodestyle\n\n检查 Python 代码是否符合 PEP 8 风格规范。\n\npycodestyle 是一个检查 Python 代码是否符合 PEP 8 风格规范的工具。\n\n## 常见规则\n- E501: 行过长\n- E302: 函数定义前需要 2 个空行\n- E305: 函数定义后需要 2 个空行",
+        "preview": false
+    },
+    "W": {
+        "name": "W",
+        "linter": "pycodestyle",
+        "summary": "pycodestyle 警告",
+        "message_formats": [],
+        "fix": "N/A",
+        "explanation": "## pycodestyle（警告）\n\n关于代码风格警告的规则。\n\n## 常见规则\n- W503: 运算符前换行\n- W504: 运算符后换行",
+        "preview": false
+    },
+    "F": {
+        "name": "F",
+        "linter": "pyflakes",
+        "summary": "pyflakes linter",
+        "message_formats": [],
+        "fix": "N/A",
+        "explanation": "## pyflakes\n\n分析 Python 程序以检测常见错误。\n\npyflakes 分析程序并检测各种错误。\n\n## 常见规则\n- F401: 模块已导入但未使用\n- F841: 局部变量从未使用\n- F811: 重新定义了未使用的名称",
+        "preview": false
+    },
+    "I": {
+        "name": "I",
+        "linter": "isort",
+        "summary": "isort linter",
+        "message_formats": [],
+        "fix": "N/A",
+        "explanation": "## isort\n\n自动排序 Python 导入。\n\nisort 是一个自动排序导入的 Python 库。\n\n## 常见规则\n- I001: 导入块未排序\n- I250: 未配对的导入",
+        "preview": false
+    },
+    "B": {
+        "name": "B",
+        "linter": "flake8-bugbear",
+        "summary": "flake8-bugbear linter",
+        "message_formats": [],
+        "fix": "N/A",
+        "explanation": "## flake8-bugbear\n\n检测 Python 中常见的 bug 和问题。\n\n这个 flake8 插件检测常见 bug 和改进建议。\n\n## 常见规则\n- B001: 使用 enumerate\n- B005: 使用 strip 处理多字符\n- B007: 循环控制变量在循环体中未使用",
+        "preview": false
+    },
+    "RUF": {
+        "name": "RUF",
+        "linter": "Ruff",
+        "summary": "Ruff linter",
+        "message_formats": [],
+        "fix": "N/A",
+        "explanation": "## Ruff\n\n一个极快的 Python linter，由 Rust 编写。\n\n## 常见规则\n- RUF001: 模糊的 unicode 字符\n- RUF002: 注释中的模糊 unicode 字符\n- RUF003: 文档字符串中的模糊 unicode 字符",
+        "preview": false
+    }
+}

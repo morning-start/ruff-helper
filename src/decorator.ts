@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as toml from "@iarna/toml";
-import { findRule, kebabToTitleCase } from "../utils";
-import { getExplanation, getName, getLinter } from "../i18n/index";
+import { findRule, kebabToTitleCase } from "./utils";
+import { getExplanation, getName, getLinter } from "./i18n";
 
 let ruleDecorator: vscode.TextEditorDecorationType | undefined;
 
