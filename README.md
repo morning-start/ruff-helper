@@ -1,68 +1,123 @@
-# ruff-helper
+# Ruff Helper
 
-ruff-helper 是一个 VS Code 扩展，集成了 [jannchie.ruff-ignore-explainer](https://github.com/jannchie/ruff-ignore-explainer) 的规则解释功能，并提供可视化配置界面来生成 ruff 配置文件。
+<p align="center">
+  <img src="logo.jpg" alt="Ruff Helper Logo" width="128">
+</p>
 
-## 功能特性
+<p align="center">
+  <strong>VS Code 扩展，让 Ruff 配置更简单</strong>
+</p>
 
-### 1. 规则解释器
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=morning-start.ruff-helper">
+    <img src="https://img.shields.io/visual-studio-marketplace/v/morning-start.ruff-helper" alt="Version">
+  </a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=morning-start.ruff-helper">
+    <img src="https://img.shields.io/visual-studio-marketplace/d/morning-start.ruff-helper" alt="Downloads">
+  </a>
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
+</p>
 
-在 `pyproject.toml` 或 `ruff.toml` 文件中，悬停在规则代码上即可显示详细的规则解释：
+---
+
+## 功能概览
+
+| 功能               | 描述                                          |
+| ------------------ | --------------------------------------------- |
+| 🔍 **规则解释器**   | 悬停查看 Ruff 规则的详细说明和代码示例        |
+| ⚙️ **可视化配置**   | 通过 VS Code 设置界面配置 Ruff，无需手写 TOML |
+| 📝 **配置文件生成** | 一键生成 `ruff.toml` 配置文件                 |
+| ✨ **内联提示**     | 在规则代码旁显示规则名称装饰                  |
+
+---
+
+## 快速开始
+
+### 安装
+
+1. 打开 VS Code
+2. 进入扩展市场（`Ctrl+Shift+X`）
+3. 搜索 "Ruff Helper"
+4. 点击安装
+
+### 基本使用
+
+#### 1. 查看规则解释
+
+在 `pyproject.toml` 或 `ruff.toml` 文件中，将鼠标悬停在规则代码上：
+
+```toml
+[lint]
+select = ["E501", "F401"]  # ← 悬停查看解释
+```
+
+#### 2. 配置 Ruff 规则
+
+打开 VS Code 设置（`Ctrl+,`），搜索 "Ruff Helper" 进行配置。
+
+#### 3. 生成配置文件
+
+按 `Ctrl+Shift+P` 打开命令面板，执行 **"Generate ruff.toml Configuration"**。
+
+---
+
+## 功能详解
+
+### 规则解释器
+
+集成 [jannchie/ruff-ignore-explainer](https://github.com/jannchie/ruff-ignore-explainer) 的规则数据库，提供：
 
 - **规则说明**：解释规则检查的内容
-- **代码示例**：提供错误示例和正确示例
-- **修复建议**：说明是否支持自动修复
+- **代码示例**：错误示例和正确示例
+- **修复建议**：是否支持自动修复
 
-支持的规则前缀：
+支持以下规则前缀：
 
-- `E` / `W` - pycodestyle 规则
-- `F` - pyflakes 规则
-- `I` - isort 规则
-- `B` - flake8-bugbear 规则
-- `RUF` - ruff 专用规则
+| 前缀 | 说明 | 来源 |
+|------|------|------|
+| `E` / `W` | pycodestyle 规则 | [pycodestyle](https://pycodestyle.pycqa.org/) |
+| `F` | pyflakes 规则 | [Pyflakes](https://github.com/PyCQA/pyflakes) |
+| `I` | import 排序规则 | [isort](https://pycqa.github.io/isort/) |
+| `B` | 潜在 bug 检测 | [flake8-bugbear](https://github.com/PyCQA/flake8-bugbear) |
+| `RUF` | Ruff 专用规则 | Ruff |
 
-**装饰提示**：在规则代码（如 `"E501"`）旁边显示规则名称作为内联提示，可通过 `showDecorations` 配置开关
+### 可视化配置
 
-### 2. 可视化配置
-
-通过 VS Code 设置页面配置 ruff 规则，无需手写 TOML：
+通过 VS Code 设置界面配置所有 Ruff 选项：
 
 #### Lint 配置
 
-| 配置项             | 说明                 | 默认值                         |
-| ------------------ | -------------------- | ------------------------------ |
-| `select`           | 启用的规则           | `E`, `W`, `F`, `I`, `B`, `RUF` |
-| `ignore`           | 禁用的规则           | `E501`, `F401`, `F841`, `B905` |
-| `extend-select`    | 额外启用的规则       | -                              |
-| `extend-ignore`    | 额外禁用的规则       | -                              |
-| `fixable`          | 只包含可修复的规则   | `ALL`                          |
-| `unfixable`        | 只包含不可修复的规则 | -                              |
-| `per-file-ignores` | 文件级别忽略规则     | `{}`                           |
-| `target-version`   | 目标 Python 版本     | `py312`                        |
+| 配置项 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `ruffHelper.select` | 数组 | `["E", "W", "F", "I", "B", "RUF"]` | 启用的规则 |
+| `ruffHelper.ignore` | 数组 | `["E501", "F401", "F841", "B905"]` | 禁用的规则 |
+| `ruffHelper.extendSelect` | 数组 | `[]` | 额外启用的规则 |
+| `ruffHelper.extendIgnore` | 数组 | `[]` | 额外禁用的规则 |
+| `ruffHelper.fixable` | 数组 | `["ALL"]` | 可自动修复的规则 |
+| `ruffHelper.unfixable` | 数组 | `[]` | 不可自动修复的规则 |
+| `ruffHelper.perFileIgnores` | 对象 | `{}` | 文件级别的忽略规则 |
+| `ruffHelper.targetVersion` | 字符串 | `"py312"` | 目标 Python 版本 |
 
-#### 格式配置
+#### Format 配置
 
-| 配置项         | 说明       | 默认值   |
-| -------------- | ---------- | -------- |
-| `line-length`  | 最大行长度 | `88`     |
-| `indent-width` | 缩进宽度   | `4`      |
-| `quote-style`  | 引号风格   | `double` |
-| `indent-style` | 缩进风格   | `space`  |
+| 配置项 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `ruffHelper.lineLength` | 数字 | `88` | 最大行长度 |
+| `ruffHelper.indentWidth` | 数字 | `4` | 缩进宽度 |
+| `ruffHelper.quoteStyle` | 枚举 | `"double"` | 引号风格 |
+| `ruffHelper.indentStyle` | 枚举 | `"space"` | 缩进风格 |
 
 #### 高级选项
 
-| 配置项            | 说明                     | 默认值                                          |
-| ----------------- | ------------------------ | ----------------------------------------------- |
-| `fix`             | 自动修复违规             | `false`                                         |
-| `unsafe-fixes`    | 包含可能改变行为的修复   | `false`                                         |
-| `exit-zero`       | 即使有违规也返回 0       | `false`                                         |
-| `extend-exclude`  | 排除的文件和目录         | `.*`, `__pycache__`, `build`, `dist`, `*.ipynb` |
-| `showDecorations` | 在规则代码旁显示装饰提示 | `true`                                          |
+| 配置项 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `ruffHelper.fix` | 布尔 | `false` | 自动修复违规 |
+| `ruffHelper.unsafeFixes` | 布尔 | `false` | 包含可能改变行为的修复 |
+| `ruffHelper.exitZero` | 布尔 | `false` | 即使有违规也返回 0 |
+| `ruffHelper.extendExclude` | 数组 | `[".*", "__pycache__", ...]` | 排除的文件和目录 |
+| `ruffHelper.showDecorations` | 布尔 | `true` | 显示规则名称装饰 |
 
-### 3. 生成配置文件
-
-使用命令面板（`Ctrl+Shift+P`）执行 **Generate ruff.toml Configuration**，可以将配置写入工作目录的 `ruff.toml` 文件。
-
-生成的配置文件结构：
+### 生成的配置文件示例
 
 ```toml
 line-length = 88
@@ -78,36 +133,13 @@ quote-style = "double"
 indent-style = "space"
 ```
 
-## 安装要求
-
-- VS Code 1.107.0 或更高版本
-- ruff（用于实际运行 linting）
-
-## 使用示例
-
-### 配置规则
-
-1. 打开 VS Code 设置（`Ctrl+,`）
-2. 搜索 "Ruff Helper"
-3. 根据需要调整配置项
-
-### 生成配置文件
-
-1. 打开你的 Python 项目
-2. 按 `Ctrl+Shift+P` 打开命令面板
-3. 输入 "Generate ruff.toml Configuration"
-4. 选择命令执行
-5. `ruff.toml` 将生成到工作区根目录
-
-### 查看规则解释
-
-1. 打开 `pyproject.toml` 或 `ruff.toml` 文件
-2. 将鼠标悬停在规则代码上（如 `"E501"`）
-3. 查看规则说明和示例
+---
 
 ## 配置示例
 
 ### 严格模式
+
+适合追求代码质量的项目：
 
 ```json
 {
@@ -120,6 +152,8 @@ indent-style = "space"
 
 ### 宽松模式
 
+适合快速开发的项目：
+
 ```json
 {
     "ruffHelper.select": ["E", "W"],
@@ -128,14 +162,62 @@ indent-style = "space"
 }
 ```
 
+### 数据科学项目
+
+适合 Jupyter Notebook 项目：
+
+```json
+{
+    "ruffHelper.select": ["E", "W", "F", "I"],
+    "ruffHelper.ignore": ["E501", "F401"],
+    "ruffHelper.lineLength": 100,
+    "ruffHelper.extendExclude": [".*", "__pycache__", "*.ipynb", ".venv"]
+}
+```
+
+---
+
+## 快捷键
+
+| 快捷键 | 命令 |
+|--------|------|
+| `Ctrl+Shift+P` | 打开命令面板 |
+| `Ctrl+,` | 打开设置 |
+
+---
+
+## 系统要求
+
+- VS Code 1.89.0 或更高版本
+- [Ruff](https://github.com/astral-sh/ruff)（用于实际运行 linting）
+
+---
+
 ## 工作原理
 
-本扩展集成了 [jannchie/ruff-ignore-explainer](https://github.com/jannchie/ruff-ignore-explainer) 的规则数据库，提供：
+本扩展通过以下方式工作：
 
 1. **Hover Provider**：当用户在 TOML 文件中悬停规则代码时，显示规则解释
 2. **Decorator**：在规则代码旁显示规则名称作为内联提示
 3. **配置生成器**：读取 VS Code 设置，生成标准格式的 `ruff.toml`
 
+---
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+[GitHub 仓库](https://github.com/morning-start/ruff-helper)
+
+---
+
 ## 许可证
 
-MIT
+[MIT](LICENSE)
+
+---
+
+## 致谢
+
+- 规则数据库来自 [jannchie/ruff-ignore-explainer](https://github.com/jannchie/ruff-ignore-explainer)
+- [Ruff](https://github.com/astral-sh/ruff) - 极快的 Python 代码检查工具
