@@ -2,7 +2,7 @@
     "name": "ruff-helper",
     "displayName": "ruff-helper",
     "description": "A helper for ruff.toml configuration generation",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "publisher": "morning-start",
     "engines": {
         "vscode": "^1.89.0"
