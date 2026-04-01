@@ -2,7 +2,7 @@
     "name": "ruff-helper",
     "displayName": "ruff-helper",
     "description": "A helper for ruff.toml configuration generation",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "publisher": "morningstart",
     "engines": {
         "vscode": "^1.89.0"
@@ -50,7 +50,8 @@
                         "E501",
                         "F401",
                         "F841",
-                        "B905"
+                        "B905",
+                        "RUF003"
                     ],
                     "description": "Disable specific rules. E501=line too long, F401=imported but unused, F841=unused variable, B905=unclosed file"
                 },
