@@ -3,7 +3,7 @@
     "displayName": "ruff-helper",
     "description": "A helper for ruff.toml configuration generation",
     "version": "1.0.0",
-    "publisher": "morning-start",
+    "publisher": "morningstart",
     "engines": {
         "vscode": "^1.89.0"
     },
