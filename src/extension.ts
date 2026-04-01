@@ -10,8 +10,7 @@ import {
     getTargetUri,
 } from "./config";
 import { findRule } from "./utils";
-import { rules, prefixToLinterMap } from "./data/rules";
-import { getExplanation, getLinterExplanation } from "./i18n";
+import { rules, prefixToLinterMap, getExplanation, getLinterExplanation } from "./i18n";
 
 const outputChannel = vscode.window.createOutputChannel("Ruff Ignore Helper");
 

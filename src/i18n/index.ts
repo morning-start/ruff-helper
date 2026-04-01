@@ -25,6 +25,38 @@ export interface RuffRule {
 
 export type Translations = Record<string, Partial<RuffRule>>;
 
+// 从英文数据生成规则数组和 linter 前缀映射
+const rulesArray: RuffRule[] = [];
+const linterMap: Record<string, string> = {};
+
+for (const [code, rule] of Object.entries(enData)) {
+    const r = rule as any;
+    rulesArray.push({
+        code,
+        name: r.name,
+        linter: r.linter,
+        summary: r.summary,
+        message_formats: r.message_formats,
+        fix: r.fix,
+        explanation: r.explanation,
+        preview: r.preview,
+    });
+
+    const match = code.match(/^[A-Z]+/);
+    if (match) {
+        const prefix = match[0];
+        if (!linterMap[prefix]) {
+            linterMap[prefix] = r.linter;
+        }
+    }
+}
+
+/** 所有 Ruff 规则数组 */
+export const rules: RuffRule[] = rulesArray;
+
+/** 规则前缀到 linter 名称的映射 */
+export const prefixToLinterMap: Record<string, string> = linterMap;
+
 export const enTranslations: Translations = enData as Translations;
 export const zhCNTranslations: Translations = zhCNData as Translations;
 
