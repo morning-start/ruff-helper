@@ -2,20 +2,20 @@
     "AIR001": {
         "name": "airflow-variable-name-task-id-mismatch",
         "linter": "Airflow",
-        "summary": "任务变量名应与 `task_id` 匹配",
-        "message_formats": ["任务变量名应与 `task_id`: \"{task_id}\" 匹配"],
-        "fix": "暂无修复方法",
-        "explanation": "## 规则说明\n检查任务变量名是否与 `task_id` 值匹配。\n\n## 为什么不好\n为了一致性，任务变量名应与 `task_id` 值匹配，便于跟踪 DAG 流程。\n\n## 示例\n```python\nfrom airflow.operators import PythonOperator\n\n\nincorrect_name = PythonOperator(task_id=\"my_task\")\n```\n\n使用 instead:\n```python\nfrom airflow.operators import PythonOperator\n\n\nmy_task = PythonOperator(task_id=\"my_task\")\n```",
+        "summary": "任务变量名应与 `task_id` 匹配：\"{task_id}\"",
+        "message_formats": ["任务变量名应与 `task_id` 匹配：\"{task_id}\""],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查 Airflow 运算符的任务变量名是否与 `task_id` 值匹配。\n\n## 问题原因\n初始化 Airflow 运算符时，为保证一致性，变量名应与 `task_id` 值保持一致。这有助于更清晰地跟踪 DAG 的执行流程。\n\n## 示例\n```python\nfrom airflow.operators import PythonOperator\n\n\nincorrect_name = PythonOperator(task_id=\"my_task\")\n```\n\n正确用法：\n```python\nfrom airflow.operators import PythonOperator\n\n\nmy_task = PythonOperator(task_id=\"my_task\")\n```",
         "preview": false
     },
     "AIR301": {
         "name": "airflow-dag-no-schedule-argument",
         "linter": "Airflow",
-        "summary": "DAG 应有明确的 `schedule` 参数",
-        "message_formats": ["DAG 应有明确的 `schedule` 参数"],
-        "fix": "暂无修复方法",
-        "explanation": "## 规则说明\n检查 DAG 是否有明确的 `schedule` 参数。\n\n## 为什么不好\nAirflow 2 的默认 `schedule` 值是 `timedelta(days=1)`，这几乎从来不是用户想要的。Airflow 3 将默认值改为 *None*，会破坏使用隐式默认值的现有 DAG。\n\n## 示例\n```python\nfrom airflow import DAG\n\n\n# 使用隐式默认 schedule\ndag = DAG(dag_id=\"my_dag\")\n```\n\n使用 instead:\n```python\nfrom datetime import timedelta\n\nfrom airflow import DAG\n\n\ndag = DAG(dag_id=\"my_dag\", schedule=timedelta(days=1))\n```",
-        "preview": false
+        "summary": "DAG 应包含显式的 `schedule` 参数",
+        "message_formats": ["DAG 应包含显式的 `schedule` 参数"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查 `DAG()` 类或 `@dag()` 装饰器是否未指定显式的 `schedule` 参数。\n\n## 问题原因\nAirflow 2 中 `schedule` 的默认值为 `timedelta(days=1)`，这几乎不是用户期望的设置。Airflow 3 将默认值改为 *None*，这会导致依赖隐式默认值的现有 DAG 运行失败。\n\n如果你的 DAG 没有显式指定 `schedule` 参数，Airflow 2 会每天（根据 `start_date` 确定具体时间）调度一次运行。而在 Airflow 3 中，此类 DAG 将不再被调度，且不会向用户显示任何异常信息或提示。\n\n## 示例\n```python\nfrom airflow import DAG\n\n\n# 使用隐式默认调度策略\ndag = DAG(dag_id=\"my_dag\")\n```\n\n正确用法：\n```python\nfrom datetime import timedelta\n\nfrom airflow import DAG\n\n\ndag = DAG(dag_id=\"my_dag\", schedule=timedelta(days=1))\n```",
+        "preview": true
     },
     "AIR302": {
         "name": "airflow3-removal",
@@ -24,73 +24,1572 @@
         "message_formats": [
             "`{deprecated}` 在 Airflow 3.0 中已移除",
             "`{deprecated}` 在 Airflow 3.0 中已移除",
-            "`{deprecated}` 在 Airflow 3.0 中已移除; {message}"
+            "`{deprecated}` 在 Airflow 3.0 中已移除；{message}"
         ],
-        "fix": "有时可用",
-        "explanation": "## 规则说明\n检查是否使用了已弃用的 Airflow 函数和值。\n\n## 为什么不好\nAirflow 3.0 移除了各种已弃用的函数、成员和其他值。一些有更现代的替代品，另一些被认为太 niche 不值得在 Airflow 中维护。\n\n## 示例\n```python\nfrom airflow.utils.dates import days_ago\n\n\nyesterday = days_ago(today, 1)\n```\n\n使用 instead:\n```python\nfrom datetime import timedelta\n\n\nyesterday = today - timedelta(days=1)\n```",
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用了 Airflow 中已废弃的函数和值。\n\n## 问题原因\nAirflow 3.0 移除了多个已废弃的函数、成员及其他值。其中部分有更现代的替代方案，其余则因应用场景过于小众而不再维护。\n\n## 示例\n```python\nfrom airflow.utils.dates import days_ago\n\n\nyesterday = days_ago(today, 1)\n```\n\n正确用法：\n```python\nfrom datetime import timedelta\n\n\nyesterday = today - timedelta(days=1)\n```",
+        "preview": true
+    },
+    "AIR303": {
+        "name": "airflow3-moved-to-provider",
+        "linter": "Airflow",
+        "summary": "`{deprecated}` 在 Airflow 3.0 中已迁移至 `{provider}` 提供器中",
+        "message_formats": [
+            "`{deprecated}` 在 Airflow 3.0 中已迁移至 `{provider}` 提供器中",
+            "导入路径 `{original_path}` 在 Airflow 3.0 中已迁移至 `{provider}` 提供器中"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用了已迁移至 Airflow 提供器（如 apache-airflow-providers-fab）的函数和值。\n\n## 问题原因\nAirflow 3.0 将多个已废弃的函数、成员及其他值迁移至其提供器中。用户需要安装对应的提供器，并将原有用法替换为提供器中的对应实现。\n\n## 示例\n```python\nfrom airflow.auth.managers.fab.fab_auth_manage import FabAuthManager\n```\n\n正确用法：\n```python\nfrom airflow.providers.fab.auth_manager.fab_auth_manage import FabAuthManager\n```",
+        "preview": true
+    },
+    "ERA001": {
+        "name": "commented-out-code",
+        "linter": "eradicate",
+        "summary": "发现注释掉的代码",
+        "message_formats": ["发现注释掉的代码"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查 Python 代码中是否存在注释掉的代码。\n\n## 问题原因\n注释掉的代码属于无效代码，通常是无意中遗留的，应予以删除。\n\n## 已知问题\n当检查类似 Python 代码但实际并非 Python 代码的注释时，容易产生误报（[#4845]）。\n\n## 示例\n```python\n# print(\"Hello, world!\")\n```\n\n## 选项\n- `lint.task-tags`\n\n[#4845]: https://github.com/astral-sh/ruff/issues/4845",
         "preview": false
     },
-    "E501": {
-        "name": "line-too-long",
-        "linter": "pycodestyle",
-        "summary": "代码行过长",
-        "message_formats": ["行超过 {LINE_LENGTH} 个字符 ({_LINE} > {LINE_LENGTH})"],
-        "fix": "可用（手动修复）",
-        "explanation": "## 规则说明\n检查代码行长度是否超过最大限制。\n\n## 为什么不好\n过长的代码行会影响可读性和可维护性。\n\n## 示例\n```python\n# 过长的行\nthis_is_a_very_long_line_that_exceeds_the_maximum_line_length\n```\n\n使用 instead:\n```python\n# 拆分成多行\nthis_is_a_shorter_line\n```",
+    "FAST001": {
+        "name": "fast-api-redundant-response-model",
+        "linter": "FastAPI",
+        "summary": "FastAPI 路由包含冗余的 `response_model` 参数",
+        "message_formats": ["FastAPI 路由包含冗余的 `response_model` 参数"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查 FastAPI 路由是否在 `response_model` 可选参数中使用了与返回类型相同的类型。\n\n## 问题原因\nFastAPI 路由会自动从返回类型推断响应模型类型，因此显式指定该参数属于冗余操作。\n\n`response_model` 参数用于覆盖默认的响应模型类型。例如，可通过 `response_model` 指定非可序列化的响应类型应通过替代类型进行序列化。\n\n更多信息，请参阅 [FastAPI 文档](https://fastapi.tiangolo.com/tutorial/response-model/)。\n\n## 示例\n\n```python\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\n\nclass Item(BaseModel):\n    name: str\n\n\n@app.post(\"/items/\", response_model=Item)\nasync def create_item(item: Item) -> Item:\n    return item\n```\n\n正确用法：\n\n```python\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\n\nclass Item(BaseModel):\n    name: str\n\n\n@app.post(\"/items/\")\nasync def create_item(item: Item) -> Item:\n    return item\n```",
         "preview": false
     },
-    "E": {
-        "name": "E",
-        "linter": "pycodestyle",
-        "summary": "pycodestyle linter",
-        "message_formats": [],
-        "fix": "N/A",
-        "explanation": "## pycodestyle\n\n检查 Python 代码是否符合 PEP 8 风格规范。\n\npycodestyle 是一个检查 Python 代码是否符合 PEP 8 风格规范的工具。\n\n## 常见规则\n- E501: 行过长\n- E302: 函数定义前需要 2 个空行\n- E305: 函数定义后需要 2 个空行",
+    "FAST002": {
+        "name": "fast-api-non-annotated-dependency",
+        "linter": "FastAPI",
+        "summary": "FastAPI 依赖项未使用 `Annotated`",
+        "message_formats": ["FastAPI 依赖项未使用 `Annotated`"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n识别 FastAPI 路由中已废弃的 `Depends` 或类似用法。\n\n## 问题原因\n[FastAPI 文档] 推荐使用 [`typing.Annotated`][typing-annotated] 定义路由依赖项和参数，而非将 `Depends`、`Query` 等作为参数的默认值。统一采用这种方式有助于确保依赖项和参数定义的一致性和清晰度。\n\n`Annotated` 已在 Python 3.9 的 `typing` 模块中添加；不过，第三方库 [`typing_extensions`][typing-extensions] 提供了向后移植版本，可用于旧版 Python。\n\n## 示例\n\n```python\nfrom fastapi import Depends, FastAPI\n\napp = FastAPI()\n\n\nasync def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):\n    return {\"q\": q, \"skip\": skip, \"limit\": limit}\n\n\n@app.get(\"/items/\")\nasync def read_items(commons: dict = Depends(common_parameters)):\n    return commons\n```\n\n正确用法：\n\n```python\nfrom typing import Annotated\n\nfrom fastapi import Depends, FastAPI\n\napp = FastAPI()\n\n\nasync def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):\n    return {\"q\": q, \"skip\": skip, \"limit\": limit}\n\n\n@app.get(\"/items/\")\nasync def read_items(commons: Annotated[dict, Depends(common_parameters)]):\n    return commons\n```\n\n[FastAPI 文档]: https://fastapi.tiangolo.com/tutorial/query-params-str-validations/?h=annotated#advantages-of-annotated\n[typing-annotated]: https://docs.python.org/3/library/typing.html#typing.Annotated\n[typing-extensions]: https://typing-extensions.readthedocs.io/en/stable/",
         "preview": false
     },
-    "W": {
-        "name": "W",
-        "linter": "pycodestyle",
-        "summary": "pycodestyle 警告",
-        "message_formats": [],
-        "fix": "N/A",
-        "explanation": "## pycodestyle（警告）\n\n关于代码风格警告的规则。\n\n## 常见规则\n- W503: 运算符前换行\n- W504: 运算符后换行",
+    "FAST003": {
+        "name": "fast-api-unused-path-parameter",
+        "linter": "FastAPI",
+        "summary": "参数 `{arg_name}` 出现在路由路径中，但未在 `{function_name}` 签名中定义",
+        "message_formats": [
+            "参数 `{arg_name}` 出现在路由路径中，但未在 `{function_name}` 签名中定义",
+            "参数 `{arg_name}` 出现在路由路径中，但仅在 `{function_name}` 签名中作为仅限位置参数存在"
+        ],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n识别在路由路径中声明了路径参数，但未在函数签名中包含该参数的 FastAPI 路由。\n\n## 问题原因\n路径参数用于从 URL 路径中提取值。\n\n如果在路由路径中声明了路径参数，但未在函数签名中定义，则该参数无法在函数体内访问，这很可能是一个错误。\n\n如果在路由路径中声明了路径参数，但在函数签名中仅作为仅限位置参数存在，FastAPI 不会注入该参数，因此也无法在函数体内访问。\n\n## 已知问题\n如果路径参数不是有效的 Python 标识符（例如 `user-id` 而非 `user_id`），FastAPI 会对其进行规范化处理。但本规则会忽略此类路径参数，因为 FastAPI 的规范化行为未在文档中明确说明。\n\n## 示例\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/things/{thing_id}\")\nasync def read_thing(query: str): ...\n```\n\n正确用法：\n\n```python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n\n@app.get(\"/things/{thing_id}\")\nasync def read_thing(thing_id: int, query: str): ...\n```\n\n## 修复安全性\n本规则的修复方案标记为不安全，因为修改函数签名可能会改变代码的行为。",
+        "preview": true
+    },
+    "YTT101": {
+        "name": "sys-version-slice3",
+        "linter": "flake8-2020",
+        "summary": "引用了 `sys.version[:3]`（Python 3.10 环境），请使用 `sys.version_info`",
+        "message_formats": [
+            "引用了 `sys.version[:3]`（Python 3.10 环境），请使用 `sys.version_info`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用了 `sys.version[:3]`。\n\n## 问题原因\n如果当前的主版本号或次版本号包含多个数字，`sys.version[:3]` 会截断版本号（例如 `\"3.10\"` 会变为 `\"3.1\"`）。这很可能是无意的，如果使用版本字符串来测试特定的 Python 版本，可能会导致潜在的错误。\n\n相反，应使用 `sys.version_info` 以元组形式访问当前的主版本号和次版本号，这样可以无问题地与其他元组进行比较。\n\n## 示例\n```python\nimport sys\n\nsys.version[:3]  # 在 Python 3.10 中结果为 \"3.1\"\n```\n\n正确用法：\n```python\nimport sys\n\nsys.version_info[:2]  # 在 Python 3.10 中结果为 (3, 10)\n```\n\n## 参考资料\n- [Python 文档：`sys.version`](https://docs.python.org/3/library/sys.html#sys.version)\n- [Python 文档：`sys.version_info`](https://docs.python.org/3/library/sys.html#sys.version_info)",
         "preview": false
     },
-    "F": {
-        "name": "F",
-        "linter": "pyflakes",
-        "summary": "pyflakes linter",
-        "message_formats": [],
-        "fix": "N/A",
-        "explanation": "## pyflakes\n\n分析 Python 程序以检测常见错误。\n\npyflakes 分析程序并检测各种错误。\n\n## 常见规则\n- F401: 模块已导入但未使用\n- F841: 局部变量从未使用\n- F811: 重新定义了未使用的名称",
+    "YTT102": {
+        "name": "sys-version2",
+        "linter": "flake8-2020",
+        "summary": "引用了 `sys.version[2]`（Python 3.10 环境），请使用 `sys.version_info`",
+        "message_formats": [
+            "引用了 `sys.version[2]`（Python 3.10 环境），请使用 `sys.version_info`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用了 `sys.version[2]`。\n\n## 问题原因\n如果当前的主版本号或次版本号包含多个数字，`sys.version[2]` 只会选择次版本号的第一个数字（例如 `\"3.10\"` 会得到 `\"1\"`）。这很可能是无意的，如果使用该版本号来测试次版本号，可能会导致潜在的错误。\n\n相反，应使用 `sys.version_info.minor` 访问当前的次版本号。\n\n## 示例\n```python\nimport sys\n\nsys.version[2]  # 在 Python 3.10 中结果为 \"1\"\n```\n\n正确用法：\n```python\nimport sys\n\nf\"{sys.version_info.minor}\"  # 在 Python 3.10 中结果为 \"10\"\n```\n\n## 参考资料\n- [Python 文档：`sys.version`](https://docs.python.org/3/library/sys.html#sys.version)\n- [Python 文档：`sys.version_info`](https://docs.python.org/3/library/sys.html#sys.version_info)",
         "preview": false
     },
-    "I": {
-        "name": "I",
-        "linter": "isort",
-        "summary": "isort linter",
-        "message_formats": [],
-        "fix": "N/A",
-        "explanation": "## isort\n\n自动排序 Python 导入。\n\nisort 是一个自动排序导入的 Python 库。\n\n## 常见规则\n- I001: 导入块未排序\n- I250: 未配对的导入",
+    "YTT103": {
+        "name": "sys-version-cmp-str3",
+        "linter": "flake8-2020",
+        "summary": "将 `sys.version` 与字符串进行比较（Python 3.10 环境），请使用 `sys.version_info`",
+        "message_formats": [
+            "将 `sys.version` 与字符串进行比较（Python 3.10 环境），请使用 `sys.version_info`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在将 `sys.version` 与字符串字面量进行比较的代码，这种比较在 Python 3.10 及更高版本中会返回 `False`。\n\n## 问题原因\n将 `sys.version` 与字符串进行比较容易出错，可能导致潜在的错误，因为比较是按字典序而非语义进行的。例如，在 Python 3.10 中，`sys.version > \"3.9\"` 会返回 `False`，因为 `\"3.10\"` 在字典序上小于 `\"3.9\"`。\n\n相反，应使用 `sys.version_info` 以元组形式访问当前的主版本号和次版本号，这样可以无问题地与其他元组进行比较。\n\n## 示例\n```python\nimport sys\n\nsys.version > \"3.9\"  # 在 Python 3.10 中结果为 `False`\n```\n\n正确用法：\n```python\nimport sys\n\nsys.version_info > (3, 9)  # 在 Python 3.10 中结果为 `True`\n```\n\n## 参考资料\n- [Python 文档：`sys.version`](https://docs.python.org/3/library/sys.html#sys.version)\n- [Python 文档：`sys.version_info`](https://docs.python.org/3/library/sys.html#sys.version_info)",
         "preview": false
     },
-    "B": {
-        "name": "B",
-        "linter": "flake8-bugbear",
-        "summary": "flake8-bugbear linter",
-        "message_formats": [],
-        "fix": "N/A",
-        "explanation": "## flake8-bugbear\n\n检测 Python 中常见的 bug 和问题。\n\n这个 flake8 插件检测常见 bug 和改进建议。\n\n## 常见规则\n- B001: 使用 enumerate\n- B005: 使用 strip 处理多字符\n- B007: 循环控制变量在循环体中未使用",
+    "YTT201": {
+        "name": "sys-version-info0-eq3",
+        "linter": "flake8-2020",
+        "summary": "引用了 `sys.version_info[0] == 3`（Python 4 环境），请使用 `>=`",
+        "message_formats": [
+            "引用了 `sys.version_info[0] == 3`（Python 4 环境），请使用 `>=`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在对 `sys.version_info` 返回的主版本号进行相等性比较的代码（例如 `sys.version_info[0] == 3`）。\n\n## 问题原因\n使用 `sys.version_info[0] == 3` 来验证主版本号是否为 Python 3 或更高版本，当主版本号递增（例如更新到 Python 4）时会失效。这很可能是无意的，因为使用这种比较的代码通常旨在运行于 Python 2 环境，但现在也会在 Python 4 中运行。\n\n相反，应使用 `>=` 检查主版本号是否为 3 或更高版本，以确保代码的前瞻性。\n\n## 示例\n```python\nimport sys\n\nif sys.version_info[0] == 3:\n    ...\nelse:\n    print(\"Python 2\")  # 在 Python 4 中会打印此内容\n```\n\n正确用法：\n```python\nimport sys\n\nif sys.version_info >= (3,):\n    ...\nelse:\n    print(\"Python 2\")  # 在 Python 4 中不会打印此内容\n```\n\n## 参考资料\n- [Python 文档：`sys.version`](https://docs.python.org/3/library/sys.html#sys.version)\n- [Python 文档：`sys.version_info`](https://docs.python.org/3/library/sys.html#sys.version_info)",
         "preview": false
     },
-    "RUF": {
-        "name": "RUF",
-        "linter": "Ruff",
-        "summary": "Ruff linter",
-        "message_formats": [],
-        "fix": "N/A",
-        "explanation": "## Ruff\n\n一个极快的 Python linter，由 Rust 编写。\n\n## 常见规则\n- RUF001: 模糊的 unicode 字符\n- RUF002: 注释中的模糊 unicode 字符\n- RUF003: 文档字符串中的模糊 unicode 字符",
+    "YTT202": {
+        "name": "six-py3",
+        "linter": "flake8-2020",
+        "summary": "引用了 `six.PY3`（Python 4 环境），请使用 `not six.PY2`",
+        "message_formats": [
+            "引用了 `six.PY3`（Python 4 环境），请使用 `not six.PY2`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用了 `six.PY3`。\n\n## 问题原因\n`six.PY3` 在 Python 4 及更高版本中会返回 `False`。这很可能是无意的，可能导致原本旨在运行于 Python 2 的代码也在 Python 4 中运行。\n\n相反，应使用 `not six.PY2` 验证当前的 Python 主版本号不等于 2，以确保代码的前瞻性。\n\n## 示例\n```python\nimport six\n\nsix.PY3  # 在 Python 4 中结果为 `False`\n```\n\n正确用法：\n```python\nimport six\n\nnot six.PY2  # 在 Python 4 中结果为 `True`\n```\n\n## 参考资料\n- [PyPI: `six`](https://pypi.org/project/six/)\n- [Six 文档：`six.PY2`](https://six.readthedocs.io/#six.PY2)\n- [Six 文档：`six.PY3`](https://six.readthedocs.io/#six.PY3)",
         "preview": false
+    },
+    "YTT203": {
+        "name": "sys-version-info1-cmp-int",
+        "linter": "flake8-2020",
+        "summary": "将 `sys.version_info[1]` 与整数进行比较（Python 4 环境），请将 `sys.version_info` 与元组进行比较",
+        "message_formats": [
+            "将 `sys.version_info[1]` 与整数进行比较（Python 4 环境），请将 `sys.version_info` 与元组进行比较"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在将 `sys.version_info[1]` 与整数进行比较的代码。\n\n## 问题原因\n仅基于当前的次版本号进行比较可能会导致潜在的错误，并且如果 Python 主版本号递增（例如更新到 Python 4），很可能会产生意外结果。\n\n相反，应将 `sys.version_info` 与包含主版本号和次版本号的元组进行比较，以确保代码的前瞻性。\n\n## 示例\n```python\nimport sys\n\nif sys.version_info[1] < 7:\n    print(\"Python 3.6 或更早版本。\")  # 在 Python 4.0 中会打印此内容\n```\n\n正确用法：\n```python\nimport sys\n\nif sys.version_info < (3, 7):\n    print(\"Python 3.6 或更早版本。\")\n```\n\n## 参考资料\n- [Python 文档：`sys.version`](https://docs.python.org/3/library/sys.html#sys.version)\n- [Python 文档：`sys.version_info`](https://docs.python.org/3/library/sys.html#sys.version_info)",
+        "preview": false
+    },
+    "YTT204": {
+        "name": "sys-version-info-minor-cmp-int",
+        "linter": "flake8-2020",
+        "summary": "将 `sys.version_info.minor` 与整数进行比较（Python 4 环境），请将 `sys.version_info` 与元组进行比较",
+        "message_formats": [
+            "将 `sys.version_info.minor` 与整数进行比较（Python 4 环境），请将 `sys.version_info` 与元组进行比较"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在将 `sys.version_info.minor` 与整数进行比较的代码。\n\n## 问题原因\n仅基于当前的次版本号进行比较可能会导致潜在的错误，并且如果 Python 主版本号递增（例如更新到 Python 4），很可能会产生意外结果。\n\n相反，应将 `sys.version_info` 与包含主版本号和次版本号的元组进行比较，以确保代码的前瞻性。\n\n## 示例\n```python\nimport sys\n\nif sys.version_info.minor < 7:\n    print(\"Python 3.6 或更早版本。\")  # 在 Python 4.0 中会打印此内容\n```\n\n正确用法：\n```python\nimport sys\n\nif sys.version_info < (3, 7):\n    print(\"Python 3.6 或更早版本。\")\n```\n\n## 参考资料\n- [Python 文档：`sys.version`](https://docs.python.org/3/library/sys.html#sys.version)\n- [Python 文档：`sys.version_info`](https://docs.python.org/3/library/sys.html#sys.version_info)",
+        "preview": false
+    },
+    "YTT301": {
+        "name": "sys-version0",
+        "linter": "flake8-2020",
+        "summary": "引用了 `sys.version[0]`（Python 10 环境），请使用 `sys.version_info`",
+        "message_formats": [
+            "引用了 `sys.version[0]`（Python 10 环境），请使用 `sys.version_info`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用了 `sys.version[0]`。\n\n## 问题原因\n如果当前的主版本号或次版本号包含多个数字，`sys.version[0]` 只会选择主版本号的第一个数字（例如 `\"10.2\"` 会得到 `\"1\"`）。这很可能是无意的，如果使用版本字符串来测试特定的主版本号，可能会导致潜在的错误。\n\n相反，应使用 `sys.version_info.major` 访问当前的主版本号。\n\n## 示例\n```python\nimport sys\n\nsys.version[0]  # 如果使用 Python 10，结果为 \"1\"\n```\n\n正确用法：\n```python\nimport sys\n\nf\"{sys.version_info.major}\"  # 如果使用 Python 10，结果为 \"10\"\n```\n\n## 参考资料\n- [Python 文档：`sys.version`](https://docs.python.org/3/library/sys.html#sys.version)\n- [Python 文档：`sys.version_info`](https://docs.python.org/3/library/sys.html#sys.version_info)",
+        "preview": false
+    },
+    "YTT302": {
+        "name": "sys-version-cmp-str10",
+        "linter": "flake8-2020",
+        "summary": "将 `sys.version` 与字符串进行比较（Python 10 环境），请使用 `sys.version_info`",
+        "message_formats": [
+            "将 `sys.version` 与字符串进行比较（Python 10 环境），请使用 `sys.version_info`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在将 `sys.version` 与字符串字面量进行比较的代码，当主版本号递增到 Python 10 或更高版本时，这种比较会失败。\n\n## 问题原因\n将 `sys.version` 与字符串进行比较容易出错，可能导致潜在的错误，因为比较是按字典序而非语义进行的。\n\n相反，应使用 `sys.version_info` 以元组形式访问当前的主版本号和次版本号，这样可以无问题地与其他元组进行比较。\n\n## 示例\n```python\nimport sys\n\nsys.version >= \"3\"  # 在 Python 10 中结果为 `False`\n```\n\n正确用法：\n```python\nimport sys\n\nsys.version_info >= (3,)  # 在 Python 10 中结果为 `True`\n```\n\n## 参考资料\n- [Python 文档：`sys.version`](https://docs.python.org/3/library/sys.html#sys.version)\n- [Python 文档：`sys.version_info`](https://docs.python.org/3/library/sys.html#sys.version_info)",
+        "preview": false
+    },
+    "YTT303": {
+        "name": "sys-version-slice1",
+        "linter": "flake8-2020",
+        "summary": "引用了 `sys.version[:1]`（Python 10 环境），请使用 `sys.version_info`",
+        "message_formats": [
+            "引用了 `sys.version[:1]`（Python 10 环境），请使用 `sys.version_info`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用了 `sys.version[:1]`。\n\n## 问题原因\n如果主版本号包含多个数字，这只会选择主版本号的第一个数字（例如 `\"10.0\"` 会得到 `\"1\"`）。这很可能是无意的，如果在未来的 Python 版本中使用版本字符串来测试特定的主版本号，可能会导致潜在的错误。\n\n相反，应使用 `sys.version_info.major` 访问当前的主版本号。\n\n## 示例\n```python\nimport sys\n\nsys.version[:1]  # 如果使用 Python 10，结果为 \"1\"\n```\n\n正确用法：\n```python\nimport sys\n\nf\"{sys.version_info.major}\"  # 如果使用 Python 10，结果为 \"10\"\n```\n\n## 参考资料\n- [Python 文档：`sys.version`](https://docs.python.org/3/library/sys.html#sys.version)\n- [Python 文档：`sys.version_info`](https://docs.python.org/3/library/sys.html#sys.version_info)",
+        "preview": false
+    },
+    "ANN001": {
+        "name": "missing-type-function-argument",
+        "linter": "flake8-annotations",
+        "summary": "函数参数 `{name}` 缺少类型注解",
+        "message_formats": ["函数参数 `{name}` 缺少类型注解"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查函数参数是否包含类型注解。\n\n## 问题原因\n类型注解是记录函数参数类型的有效方式。当与类型检查器配合使用时，它们还能帮助捕获错误，确保提供的参数类型符合预期。\n\n## 示例\n\n```python\ndef foo(x): ...\n```\n\n正确用法：\n\n```python\ndef foo(x: int): ...\n```\n\n## 选项\n- `lint.flake8-annotations.suppress-dummy-args`",
+        "preview": false
+    },
+    "ANN002": {
+        "name": "missing-type-args",
+        "linter": "flake8-annotations",
+        "summary": "`*{name}` 缺少类型注解",
+        "message_formats": ["`*{name}` 缺少类型注解"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查函数 `*args` 参数是否包含类型注解。\n\n## 问题原因\n类型注解是记录函数参数类型的有效方式。当与类型检查器配合使用时，它们还能帮助捕获错误，确保提供的参数类型符合预期。\n\n## 示例\n```python\ndef foo(*args): ...\n```\n\n正确用法：\n```python\ndef foo(*args: int): ...\n```\n\n## 选项\n- `lint.flake8-annotations.suppress-dummy-args`",
+        "preview": false
+    },
+    "ANN003": {
+        "name": "missing-type-kwargs",
+        "linter": "flake8-annotations",
+        "summary": "`**{name}` 缺少类型注解",
+        "message_formats": ["`**{name}` 缺少类型注解"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查函数 `**kwargs` 参数是否包含类型注解。\n\n## 问题原因\n类型注解是记录函数参数类型的有效方式。当与类型检查器配合使用时，它们还能帮助捕获错误，确保提供的参数类型符合预期。\n\n## 示例\n```python\ndef foo(**kwargs): ...\n```\n\n正确用法：\n```python\ndef foo(**kwargs: int): ...\n```\n\n## 选项\n- `lint.flake8-annotations.suppress-dummy-args`",
+        "preview": false
+    },
+    "ANN101": {
+        "name": "missing-type-self",
+        "linter": "flake8-annotations",
+        "summary": "方法中的 `{name}` 缺少类型注解",
+        "message_formats": ["方法中的 `{name}` 缺少类型注解"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 已移除\n此规则已被移除，因为类型检查器无需注解即可推断该类型。\n\n## 功能说明\n检查实例方法的 `self` 参数是否包含类型注解。\n\n## 问题原因\n类型注解是记录函数参数类型的有效方式。当与类型检查器配合使用时，它们还能帮助捕获错误，确保提供的参数类型符合预期。\n\n注意：许多类型检查器会自动推断 `self` 的类型，因此此注解并非严格必要。\n\n## 示例\n```python\nclass Foo:\n    def bar(self): ...\n```\n\n正确用法：\n```python\nclass Foo:\n    def bar(self: \"Foo\"): ...\n```",
+        "preview": false
+    },
+    "ANN102": {
+        "name": "missing-type-cls",
+        "linter": "flake8-annotations",
+        "summary": "类方法中的 `{name}` 缺少类型注解",
+        "message_formats": ["类方法中的 `{name}` 缺少类型注解"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 已移除\n此规则已被移除，因为类型检查器无需注解即可推断该类型。\n\n## 功能说明\n检查类方法的 `cls` 参数是否包含类型注解。\n\n## 问题原因\n类型注解是记录函数参数类型的有效方式。当与类型检查器配合使用时，它们还能帮助捕获错误，确保提供的参数类型符合预期。\n\n注意：许多类型检查器会自动推断 `cls` 的类型，因此此注解并非严格必要。\n\n## 示例\n```python\nclass Foo:\n    @classmethod\n    def bar(cls): ...\n```\n\n正确用法：\n```python\nclass Foo:\n    @classmethod\n    def bar(cls: Type[\"Foo\"]): ...\n```",
+        "preview": false
+    },
+    "ANN201": {
+        "name": "missing-return-type-undocumented-public-function",
+        "linter": "flake8-annotations",
+        "summary": "公共函数 `{name}` 缺少返回类型注解",
+        "message_formats": ["公共函数 `{name}` 缺少返回类型注解"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查公共函数和方法是否包含返回类型注解。\n\n## 问题原因\n类型注解是记录函数返回类型的有效方式。当与类型检查器配合使用时，它们还能帮助捕获错误，确保返回值的类型与调用者预期的类型一致。\n\n## 示例\n```python\ndef add(a, b):\n    return a + b\n```\n\n正确用法：\n```python\ndef add(a: int, b: int) -> int:\n    return a + b\n```",
+        "preview": false
+    },
+    "ANN202": {
+        "name": "missing-return-type-private-function",
+        "linter": "flake8-annotations",
+        "summary": "私有函数 `{name}` 缺少返回类型注解",
+        "message_formats": ["私有函数 `{name}` 缺少返回类型注解"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查私有函数和方法是否包含返回类型注解。\n\n## 问题原因\n类型注解是记录函数返回类型的有效方式。当与类型检查器配合使用时，它们还能帮助捕获错误，确保返回值的类型与调用者预期的类型一致。\n\n## 示例\n```python\ndef _add(a, b):\n    return a + b\n```\n\n正确用法：\n```python\ndef _add(a: int, b: int) -> int:\n    return a + b\n```",
+        "preview": false
+    },
+    "ANN204": {
+        "name": "missing-return-type-special-method",
+        "linter": "flake8-annotations",
+        "summary": "特殊方法 `{name}` 缺少返回类型注解",
+        "message_formats": ["特殊方法 `{name}` 缺少返回类型注解"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查“特殊”方法（如 `__init__`、`__new__` 和 `__call__`）是否包含返回类型注解。\n\n## 问题原因\n类型注解是记录函数返回类型的有效方式。当与类型检查器配合使用时，它们还能帮助捕获错误，确保返回值的类型与调用者预期的类型一致。\n\n注意：类型检查器通常允许省略 `__init__` 方法的返回类型注解，只要至少有一个参数包含类型注解。要启用此行为，请在 `pyproject.toml` 或 `ruff.toml` 文件中设置 `mypy-init-return` 配置：\n\n```toml\n[tool.ruff.lint.flake8-annotations]\nmypy-init-return = true\n```\n\n## 示例\n```python\nclass Foo:\n    def __init__(self, x: int):\n        self.x = x\n```\n\n正确用法：\n```python\nclass Foo:\n    def __init__(self, x: int) -> None:\n        self.x = x\n```",
+        "preview": false
+    },
+    "ANN205": {
+        "name": "missing-return-type-static-method",
+        "linter": "flake8-annotations",
+        "summary": "静态方法 `{name}` 缺少返回类型注解",
+        "message_formats": ["静态方法 `{name}` 缺少返回类型注解"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查静态方法是否包含返回类型注解。\n\n## 问题原因\n类型注解是记录函数返回类型的有效方式。当与类型检查器配合使用时，它们还能帮助捕获错误，确保返回值的类型与调用者预期的类型一致。\n\n## 示例\n```python\nclass Foo:\n    @staticmethod\n    def bar():\n        return 1\n```\n\n正确用法：\n```python\nclass Foo:\n    @staticmethod\n    def bar() -> int:\n        return 1\n```",
+        "preview": false
+    },
+    "ANN206": {
+        "name": "missing-return-type-class-method",
+        "linter": "flake8-annotations",
+        "summary": "类方法 `{name}` 缺少返回类型注解",
+        "message_formats": ["类方法 `{name}` 缺少返回类型注解"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查类方法是否包含返回类型注解。\n\n## 问题原因\n类型注解是记录函数返回类型的有效方式。当与类型检查器配合使用时，它们还能帮助捕获错误，确保返回值的类型与调用者预期的类型一致。\n\n## 示例\n```python\nclass Foo:\n    @classmethod\n    def bar(cls):\n        return 1\n```\n\n正确用法：\n```python\nclass Foo:\n    @classmethod\n    def bar(cls) -> int:\n        return 1\n```",
+        "preview": false
+    },
+    "ANN401": {
+        "name": "any-type",
+        "linter": "flake8-annotations",
+        "summary": "`{name}` 中不允许使用动态类型表达式（typing.Any）",
+        "message_formats": [
+            "`{name}` 中不允许使用动态类型表达式（typing.Any）"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查函数参数是否使用了比 `Any` 更具体的类型进行注解。\n\n## 问题原因\n`Any` 是一种特殊类型，表示无约束类型。当表达式注解为 `Any` 类型时，类型检查器将允许对其执行所有操作。\n\n最好明确表达式的类型，仅在确实需要时将 `Any` 用作“逃生舱”。\n\n## 示例\n```python\ndef foo(x: Any): ...\n```\n\n正确用法：\n```python\ndef foo(x: int): ...\n```\n\n## 已知问题\n不支持类型别名，可能导致误报。例如，以下代码会无意中触发此规则：\n```python\nfrom typing import Any\n\nMyAny = Any\n\ndef foo(x: MyAny): ...\n```\n\n## 参考资料\n- [类型规范：`Any`](https://typing.readthedocs.io/en/latest/spec/special-types.html#any)\n- [Python 文档：`typing.Any`](https://docs.python.org/3/library/typing.html#typing.Any)\n- [Mypy 文档：Any 类型](https://mypy.readthedocs.io/en/stable/kinds_of_types.html#the-any-type)",
+        "preview": false
+    },
+    "ASYNC100": {
+        "name": "cancel-scope-no-checkpoint",
+        "linter": "flake8-async",
+        "summary": "`with {method_name}(...):` 上下文不包含任何 `await` 语句。这毫无意义，因为超时只能通过检查点触发。",
+        "message_formats": [
+            "`with {method_name}(...):` 上下文不包含任何 `await` 语句。这毫无意义，因为超时只能通过检查点触发。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查不包含检查点的超时上下文管理器。\n\n就本检查而言，`yield` 被视为检查点，因为检查点可能发生在我们 yield 的调用者中。\n\n## 问题原因\n某些异步上下文管理器（如 `asyncio.timeout` 和 `trio.move_on_after`）只有在包含检查点时才会生效。如果此类上下文管理器中没有 `await`、`async with` 或 `async for` 语句，则很可能是一个错误。\n\n## 示例\n```python\nasync def func():\n    async with asyncio.timeout(2):\n        do_something()\n```\n\n正确用法：\n```python\nasync def func():\n    async with asyncio.timeout(2):\n        do_something()\n        await awaitable()\n```\n\n## 参考资料\n- [`asyncio` 超时](https://docs.python.org/3/library/asyncio-task.html#timeouts)\n- [`anyio` 超时](https://anyio.readthedocs.io/en/stable/cancellation.html)\n- [`trio` 超时](https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts)",
+        "preview": false
+    },
+    "ASYNC105": {
+        "name": "trio-sync-call",
+        "linter": "flake8-async",
+        "summary": "调用 `{method_name}` 未立即使用 `await`",
+        "message_formats": ["调用 `{method_name}` 未立即使用 `await`"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查调用 trio 函数但未立即使用 `await` 的情况。\n\n## 问题原因\n`trio` 暴露的许多函数都是异步的，必须通过 `await` 才能生效。调用 trio 函数而不使用 `await` 可能会导致 `RuntimeWarning` 诊断信息和意外行为。\n\n## 示例\n```python\nasync def double_sleep(x):\n    trio.sleep(2 * x)\n```\n\n正确用法：\n```python\nasync def double_sleep(x):\n    await trio.sleep(2 * x)\n```\n\n## 修复安全性\n本规则的修复方案标记为不安全，因为向函数调用添加 `await` 会改变其语义和运行时行为。",
+        "preview": false
+    },
+    "ASYNC109": {
+        "name": "async-function-with-timeout",
+        "linter": "flake8-async",
+        "summary": "异步函数定义包含 `timeout` 参数",
+        "message_formats": ["异步函数定义包含 `timeout` 参数"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查包含 `timeout` 参数的 `async` 函数定义。\n\n## 问题原因\n与其手动实现异步超时行为，不如优先使用内置的超时功能，例如 `asyncio.timeout`、`trio.fail_after` 或 `anyio.move_on_after` 等。\n\n此规则具有强烈的主观性，旨在强制执行一种称为“结构化并发”的设计模式，该模式允许 `async` 函数无需关注超时，而是由调用者通过上下文管理器处理相关逻辑。\n\n## 详细说明\n此规则会通过分析所检查文件中的导入语句来尝试检测代码使用的异步框架。如果在代码中发现 `anyio` 导入，则假定使用 `anyio` 作为框架；如果发现 `trio` 导入，则假定使用 `trio`；如果两者都未发现，则假定使用 `asyncio`。`asyncio.timeout` 已在 Python 3.11 中添加，因此如果检测到使用 `asyncio` 作为框架，当配置的 `target-version` 设置为低于 Python 3.11 时，此规则将被忽略。\n\n对于包装 `asyncio.timeout`、`trio.fail_after` 或 `anyio.move_on_after` 的函数，可以通过使用不同的参数名来避免此规则产生误报。\n\n## 示例\n```python\nasync def long_running_task(timeout): ...\n\nasync def main():\n    await long_running_task(timeout=2)\n```\n\n正确用法：\n```python\nasync def long_running_task(): ...\n\nasync def main():\n    async with asyncio.timeout(2):\n        await long_running_task()\n```\n\n## 参考资料\n- [`asyncio` 超时](https://docs.python.org/3/library/asyncio-task.html#timeouts)\n- [`anyio` 超时](https://anyio.readthedocs.io/en/stable/cancellation.html)\n- [`trio` 超时](https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts)",
+        "preview": false
+    },
+    "ASYNC110": {
+        "name": "async-busy-wait",
+        "linter": "flake8-async",
+        "summary": "使用 `{module}.Event` 替代在 `while` 循环中使用 `{module}.sleep`",
+        "message_formats": [
+            "使用 `{module}.Event` 替代在 `while` 循环中使用 `{module}.sleep`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查在 `while` 循环中使用异步睡眠函数的情况。\n\n## 问题原因\n与其在 `while` 循环中睡眠并等待条件变为真，不如 `await` 一个 `Event` 对象，例如：`asyncio.Event`、`trio.Event` 或 `anyio.Event`。\n\n## 示例\n```python\nDONE = False\n\nasync def func():\n    while not DONE:\n        await asyncio.sleep(1)\n```\n\n正确用法：\n```python\nDONE = asyncio.Event()\n\nasync def func():\n    await DONE.wait()\n```\n\n## 参考资料\n- [`asyncio` 事件](https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event)\n- [`anyio` 事件](https://anyio.readthedocs.io/en/latest/api.html#anyio.Event)\n- [`trio` 事件](https://trio.readthedocs.io/en/stable/reference-core.html#trio.Event)",
+        "preview": false
+    },
+    "ASYNC115": {
+        "name": "async-zero-sleep",
+        "linter": "flake8-async",
+        "summary": "使用 `{module}.lowlevel.checkpoint()` 替代 `{module}.sleep(0)`",
+        "message_formats": [
+            "使用 `{module}.lowlevel.checkpoint()` 替代 `{module}.sleep(0)`"
+        ],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用了 `trio.sleep(0)` 或 `anyio.sleep(0)`。\n\n## 问题原因\n`trio.sleep(0)` 等同于调用 `trio.lowlevel.checkpoint()`。然而，后者更能传达代码的意图。\n\n## 示例\n```python\nimport trio\n\nasync def func():\n    await trio.sleep(0)\n```\n\n正确用法：\n```python\nimport trio\n\nasync def func():\n    await trio.lowlevel.checkpoint()\n```",
+        "preview": false
+    },
+    "ASYNC116": {
+        "name": "long-sleep-not-forever",
+        "linter": "flake8-async",
+        "summary": "`{module}.sleep()` 中超过 24 小时的间隔通常应使用 `{module}.sleep_forever()`",
+        "message_formats": [
+            "`{module}.sleep()` 中超过 24 小时的间隔通常应使用 `{module}.sleep_forever()`"
+        ],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查 `trio.sleep()` 或 `anyio.sleep()` 中使用超过 24 小时延迟的情况。\n\n## 问题原因\n使用超过 24 小时的延迟调用 `sleep()` 通常旨在无限期睡眠。与其使用较大的延迟，不如使用 `trio.sleep_forever()` 或 `anyio.sleep_forever()`，这更能传达意图。\n\n## 示例\n```python\nimport trio\n\nasync def func():\n    await trio.sleep(86401)\n```\n\n正确用法：\n```python\nimport trio\n\nasync def func():\n    await trio.sleep_forever()\n```",
+        "preview": true
+    },
+    "ASYNC210": {
+        "name": "blocking-http-call-in-async-function",
+        "linter": "flake8-async",
+        "summary": "异步函数不应调用阻塞性 HTTP 方法",
+        "message_formats": ["异步函数不应调用阻塞性 HTTP 方法"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查异步函数是否包含阻塞性 HTTP 调用。\n\n## 问题原因\n通过阻塞性 HTTP 调用阻塞异步函数会阻塞整个事件循环，导致在等待 HTTP 响应时无法执行其他任务，从而抵消异步编程的优势。\n\n与其进行阻塞性 HTTP 调用，不如使用异步 HTTP 客户端库，例如 `aiohttp` 或 `httpx`。\n\n## 示例\n```python\nasync def fetch():\n    urllib.request.urlopen(\"https://example.com/foo/bar\").read()\n```\n\n正确用法：\n```python\nasync def fetch():\n    async with aiohttp.ClientSession() as session:\n        async with session.get(\"https://example.com/foo/bar\") as resp:\n            ...\n```",
+        "preview": false
+    },
+    "ASYNC220": {
+        "name": "create-subprocess-in-async-function",
+        "linter": "flake8-async",
+        "summary": "异步函数不应使用阻塞性方法创建子进程",
+        "message_formats": ["异步函数不应使用阻塞性方法创建子进程"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查异步函数是否使用阻塞性方法创建子进程。\n\n## 问题原因\n通过阻塞性调用阻塞异步函数会阻塞整个事件循环，导致在等待调用完成时无法执行其他任务，从而抵消异步编程的优势。\n\n与其进行阻塞性调用，不如使用等效的异步库或函数，例如 `trio.run_process()` 或 `anyio.run_process()`。\n\n## 示例\n```python\nasync def foo():\n    os.popen(cmd)\n```\n\n正确用法：\n```python\nasync def foo():\n    asyncio.create_subprocess_shell(cmd)\n```",
+        "preview": false
+    },
+    "ASYNC221": {
+        "name": "run-process-in-async-function",
+        "linter": "flake8-async",
+        "summary": "异步函数不应使用阻塞性方法运行进程",
+        "message_formats": ["异步函数不应使用阻塞性方法运行进程"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查异步函数是否使用阻塞性方法运行进程。\n\n## 问题原因\n通过阻塞性调用阻塞异步函数会阻塞整个事件循环，导致在等待调用完成时无法执行其他任务，从而抵消异步编程的优势。\n\n与其进行阻塞性调用，不如使用等效的异步库或函数，例如 [`trio.run_process()`](https://trio.readthedocs.io/en/stable/reference-io.html#trio.run_process) 或 [`anyio.run_process()`](https://anyio.readthedocs.io/en/latest/api.html#anyio.run_process)。\n\n## 示例\n```python\nasync def foo():\n    subprocess.run(cmd)\n```\n\n正确用法：\n```python\nasync def foo():\n    asyncio.create_subprocess_shell(cmd)\n```",
+        "preview": false
+    },
+    "ASYNC222": {
+        "name": "wait-for-process-in-async-function",
+        "linter": "flake8-async",
+        "summary": "异步函数不应使用阻塞性方法等待进程",
+        "message_formats": ["异步函数不应使用阻塞性方法等待进程"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查异步函数是否使用阻塞性方法等待进程。\n\n## 问题原因\n通过阻塞性调用阻塞异步函数会阻塞整个事件循环，导致在等待调用完成时无法执行其他任务，从而抵消异步编程的优势。\n\n与其进行阻塞性调用，不如使用等效的异步库或函数，例如 [`trio.to_thread.run_sync()`](https://trio.readthedocs.io/en/latest/reference-core.html#trio.to_thread.run_sync) 或 [`anyio.to_thread.run_sync()`](https://anyio.readthedocs.io/en/latest/api.html#anyio.to_thread.run_sync)。\n\n## 示例\n```python\nasync def foo():\n    os.waitpid(0)\n```\n\n正确用法：\n```python\ndef wait_for_process():\n    os.waitpid(0)\n\n\nasync def foo():\n    await asyncio.loop.run_in_executor(None, wait_for_process)\n```",
+        "preview": false
+    },
+    "ASYNC230": {
+        "name": "blocking-open-call-in-async-function",
+        "linter": "flake8-async",
+        "summary": "异步函数不应使用 `open` 等阻塞性方法打开文件",
+        "message_formats": ["异步函数不应使用 `open` 等阻塞性方法打开文件"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查异步函数是否使用 `open` 等阻塞性方法打开文件。\n\n## 问题原因\n通过阻塞性调用阻塞异步函数会阻塞整个事件循环，导致在等待调用完成时无法执行其他任务，从而抵消异步编程的优势。\n\n与其进行阻塞性调用，不如使用等效的异步库或函数。\n\n## 示例\n```python\nasync def foo():\n    with open(\"bar.txt\") as f:\n        contents = f.read()\n```\n\n正确用法：\n```python\nimport anyio\n\n\nasync def foo():\n    async with await anyio.open_file(\"bar.txt\") as f:\n        contents = await f.read()\n```",
+        "preview": false
+    },
+    "ASYNC251": {
+        "name": "blocking-sleep-in-async-function",
+        "linter": "flake8-async",
+        "summary": "异步函数不应调用 `time.sleep`",
+        "message_formats": ["异步函数不应调用 `time.sleep`"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查异步函数是否调用 `time.sleep`。\n\n## 问题原因\n通过 `time.sleep` 调用阻塞异步函数会阻塞整个事件循环，导致在等待 `time.sleep` 完成时无法执行其他任务，从而抵消异步编程的优势。\n\n与其使用 `time.sleep`，不如使用 `asyncio.sleep`。\n\n## 示例\n```python\nasync def fetch():\n    time.sleep(1)\n```\n\n正确用法：\n```python\nasync def fetch():\n    await asyncio.sleep(1)\n```",
+        "preview": false
+    },
+    "S101": {
+        "name": "assert",
+        "linter": "flake8-bandit",
+        "summary": "检测到使用 `assert`",
+        "message_formats": ["检测到使用 `assert`"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `assert` 关键字。\n\n## 问题原因\n当 Python 以优化模式运行（即带有 `-O` 标志）时，断言会被移除，这在生产环境中是常见做法。因此，不应使用断言进行用户输入的运行时验证或强制执行接口约束。\n\n考虑抛出有意义的错误而非使用 `assert`。\n\n## 示例\n```python\nassert x > 0, \"预期为正值。\"\n```\n\n正确用法：\n```python\nif not x > 0:\n    raise ValueError(\"预期为正值。\")\n\n# 或者更优的写法：\nif x <= 0:\n    raise ValueError(\"预期为正值。\")\n```",
+        "preview": false
+    },
+    "S102": {
+        "name": "exec-builtin",
+        "linter": "flake8-bandit",
+        "summary": "检测到使用 `exec`",
+        "message_formats": ["检测到使用 `exec`"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用内置的 `exec` 函数。\n\n## 问题原因\n`exec()` 函数不安全，因为它允许执行任意代码。\n\n## 示例\n```python\nexec(\"print('Hello World')\")\n```\n\n## 参考资料\n- [Python 文档：`exec`](https://docs.python.org/3/library/functions.html#exec)\n- [常见弱点枚举：CWE-78](https://cwe.mitre.org/data/definitions/78.html)",
+        "preview": false
+    },
+    "S103": {
+        "name": "bad-file-permissions",
+        "linter": "flake8-bandit",
+        "summary": "`os.chmod` 为文件或目录设置了宽松的权限掩码 `{mask:#o}`",
+        "message_formats": [
+            "`os.chmod` 为文件或目录设置了宽松的权限掩码 `{mask:#o}`",
+            "`os.chmod` 为文件或目录设置了无效的权限掩码"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查文件是否具有过于宽松的权限。\n\n## 问题原因\n过于宽松的文件权限可能允许未授权访问和任意代码执行。\n\n## 示例\n```python\nimport os\n\nos.chmod(\"/etc/secrets.txt\", 0o666)  # rw-rw-rw-\n```\n\n正确用法：\n```python\nimport os\n\nos.chmod(\"/etc/secrets.txt\", 0o600)  # rw-------\n```\n\n## 参考资料\n- [Python 文档：`os.chmod`](https://docs.python.org/3/library/os.html#os.chmod)\n- [Python 文档：`stat`](https://docs.python.org/3/library/stat.html)\n- [常见弱点枚举：CWE-732](https://cwe.mitre.org/data/definitions/732.html)",
+        "preview": false
+    },
+    "S104": {
+        "name": "hardcoded-bind-all-interfaces",
+        "linter": "flake8-bandit",
+        "summary": "可能绑定到所有接口",
+        "message_formats": ["可能绑定到所有接口"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否硬编码绑定到所有网络接口（`0.0.0.0`）。\n\n## 问题原因\n绑定到所有网络接口不安全，因为它允许来自未授权接口的访问，这些接口可能安全性较差或未授权。\n\n相反，应绑定到特定接口。\n\n## 示例\n```python\nALLOWED_HOSTS = [\"0.0.0.0\"]\n```\n\n正确用法：\n```python\nALLOWED_HOSTS = [\"127.0.0.1\", \"localhost\"]\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-200](https://cwe.mitre.org/data/definitions/200.html)",
+        "preview": false
+    },
+    "S105": {
+        "name": "hardcoded-password-string",
+        "linter": "flake8-bandit",
+        "summary": "可能在字符串中硬编码密码，赋值给：\"{}\"",
+        "message_formats": ["可能在字符串中硬编码密码，赋值给：\"{}\""],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查字符串中是否存在潜在的硬编码密码。\n\n## 问题原因\n在源代码中包含硬编码密码存在安全风险，攻击者可能发现该密码并使用它获取未授权访问。\n\n相反，应将密码和其他密钥存储在配置文件、环境变量或其他排除在版本控制之外的来源中。\n\n## 示例\n```python\nSECRET_KEY = \"hunter2\"\n```\n\n正确用法：\n```python\nimport os\n\nSECRET_KEY = os.environ[\"SECRET_KEY\"]\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-259](https://cwe.mitre.org/data/definitions/259.html)",
+        "preview": false
+    },
+    "S106": {
+        "name": "hardcoded-password-func-arg",
+        "linter": "flake8-bandit",
+        "summary": "可能在函数参数中硬编码密码，赋值给参数：\"{}\"",
+        "message_formats": ["可能在函数参数中硬编码密码，赋值给参数：\"{}\""],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查函数调用中是否存在潜在的硬编码密码。\n\n## 问题原因\n在源代码中包含硬编码密码存在安全风险，攻击者可能发现该密码并使用它获取未授权访问。\n\n相反，应将密码和其他密钥存储在配置文件、环境变量或其他排除在版本控制之外的来源中。\n\n## 示例\n```python\nconnect_to_server(password=\"hunter2\")\n```\n\n正确用法：\n```python\nimport os\n\nconnect_to_server(password=os.environ[\"PASSWORD\"])\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-259](https://cwe.mitre.org/data/definitions/259.html)",
+        "preview": false
+    },
+    "S107": {
+        "name": "hardcoded-password-default",
+        "linter": "flake8-bandit",
+        "summary": "可能在函数默认参数中硬编码密码，赋值给：\"{}\"",
+        "message_formats": ["可能在函数默认参数中硬编码密码，赋值给：\"{}\""],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查函数参数默认值中是否存在潜在的硬编码密码。\n\n## 问题原因\n在源代码中包含硬编码密码存在安全风险，攻击者可能发现该密码并使用它获取未授权访问。\n\n相反，应将密码和其他密钥存储在配置文件、环境变量或其他排除在版本控制之外的来源中。\n\n## 示例\n\n```python\ndef connect_to_server(password=\"hunter2\"): ...\n```\n\n正确用法：\n\n```python\nimport os\n\n\ndef connect_to_server(password=os.environ[\"PASSWORD\"]): ...\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-259](https://cwe.mitre.org/data/definitions/259.html)",
+        "preview": false
+    },
+    "S108": {
+        "name": "hardcoded-temp-file",
+        "linter": "flake8-bandit",
+        "summary": "可能不安全地使用临时文件或目录：\"{}\"",
+        "message_formats": ["可能不安全地使用临时文件或目录：\"{}\""],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用硬编码的临时文件或目录路径。\n\n## 问题原因\n为临时文件使用硬编码路径可能不安全。如果攻击者发现硬编码路径的位置，他们可以用恶意负载替换文件或目录的内容。\n\n其他程序也可能读取或写入这些硬编码路径的内容，导致意外行为。\n\n## 示例\n```python\nwith open(\"/tmp/foo.txt\", \"w\") as file:\n    ...\n```\n\n正确用法：\n```python\nimport tempfile\n\nwith tempfile.NamedTemporaryFile() as file:\n    ...\n```\n\n## 选项\n- `lint.flake8-bandit.hardcoded-tmp-directory`\n- `lint.flake8-bandit.hardcoded-tmp-directory-extend`\n\n## 参考资料\n- [常见弱点枚举：CWE-377](https://cwe.mitre.org/data/definitions/377.html)\n- [常见弱点枚举：CWE-379](https://cwe.mitre.org/data/definitions/379.html)\n- [Python 文档：`tempfile`](https://docs.python.org/3/library/tempfile.html)",
+        "preview": false
+    },
+    "S110": {
+        "name": "try-except-pass",
+        "linter": "flake8-bandit",
+        "summary": "检测到 `try`-`except`-`pass` 模式，考虑记录异常",
+        "message_formats": ["检测到 `try`-`except`-`pass` 模式，考虑记录异常"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `try`-`except`-`pass` 模式。\n\n## 问题原因\n`try`-`except`-`pass` 模式会抑制所有异常。抑制异常可能隐藏原本可以揭示意外行为、安全漏洞或恶意活动的错误。相反，考虑记录异常。\n\n## 示例\n```python\ntry:\n    ...\nexcept Exception:\n    pass\n```\n\n正确用法：\n```python\nimport logging\n\ntry:\n    ...\nexcept Exception as exc:\n    logging.exception(\"发生异常\")\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-703](https://cwe.mitre.org/data/definitions/703.html)\n- [Python 文档：`logging`](https://docs.python.org/3/library/logging.html)",
+        "preview": false
+    },
+    "S112": {
+        "name": "try-except-continue",
+        "linter": "flake8-bandit",
+        "summary": "检测到 `try`-`except`-`continue` 模式，考虑记录异常",
+        "message_formats": [
+            "检测到 `try`-`except`-`continue` 模式，考虑记录异常"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `try`-`except`-`continue` 模式。\n\n## 问题原因\n`try`-`except`-`continue` 模式会抑制所有异常。抑制异常可能隐藏原本可以揭示意外行为、安全漏洞或恶意活动的错误。相反，考虑记录异常。\n\n## 示例\n```python\nimport logging\n\nwhile predicate:\n    try:\n        ...\n    except Exception:\n        continue\n```\n\n正确用法：\n```python\nimport logging\n\nwhile predicate:\n    try:\n        ...\n    except Exception as exc:\n        logging.exception(\"发生错误\")\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-703](https://cwe.mitre.org/data/definitions/703.html)\n- [Python 文档：`logging`](https://docs.python.org/3/library/logging.html)",
+        "preview": false
+    },
+    "S113": {
+        "name": "request-without-timeout",
+        "linter": "flake8-bandit",
+        "summary": "可能使用 `{module}` 调用但未设置超时",
+        "message_formats": [
+            "可能使用 `{module}` 调用但未设置超时",
+            "可能使用 `{module}` 调用且超时设置为 `None`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查 Python `requests` 或 `httpx` 模块的使用是否省略了 `timeout` 参数。\n\n## 问题原因\n`timeout` 参数用于设置等待服务器响应的最长时间。通过省略 `timeout` 参数，程序可能会在等待响应时无限期挂起。\n\n## 示例\n```python\nimport requests\n\nrequests.get(\"https://www.example.com/\")\n```\n\n正确用法：\n```python\nimport requests\n\nrequests.get(\"https://www.example.com/\", timeout=10)\n```\n\n## 参考资料\n- [Requests 文档：超时](https://requests.readthedocs.io/en/latest/user/advanced/#timeouts)\n- [httpx 文档：超时](https://www.python-httpx.org/advanced/timeouts/)",
+        "preview": false
+    },
+    "S201": {
+        "name": "flask-debug-true",
+        "linter": "flake8-bandit",
+        "summary": "检测到 Flask 应用中使用 `debug=True`",
+        "message_formats": ["检测到 Flask 应用中使用 `debug=True`"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查 Flask 中是否使用 `debug=True`。\n\n## 问题原因\n启用调试模式会在发生错误时在浏览器中显示交互式调试器，并允许从浏览器运行任意 Python 代码。这可能泄露敏感信息，或允许攻击者运行任意代码。\n\n## 示例\n```python\nimport flask\n\napp = Flask()\n\napp.run(debug=True)\n```\n\n正确用法：\n```python\nimport flask\n\napp = Flask()\n\napp.run(debug=os.environ[\"ENV\"] == \"dev\")\n```\n\n## 参考资料\n- [Flask 文档：调试模式](https://flask.palletsprojects.com/en/latest/quickstart/#debug-mode)",
+        "preview": false
+    },
+    "S202": {
+        "name": "tarfile-unsafe-members",
+        "linter": "flake8-bandit",
+        "summary": "使用 `tarfile.extractall()`",
+        "message_formats": ["使用 `tarfile.extractall()`"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `tarfile.extractall`。\n\n## 问题原因\n\n从未经信任的来源提取归档文件而不进行事先检查存在安全风险，因为恶意构造的归档文件可能包含会被写入目标目录之外的文件。例如，归档文件可能包含绝对路径（如 `/etc/passwd`）或带有父目录引用的相对路径（如 `../etc/passwd`）。\n\n在 Python 3.12 及更高版本中，使用 `filter='data'` 可防止最危险的安全问题（参见：[PEP 706]）。在早期版本中，将 `members` 参数设置为归档文件成员的可信子集。\n\n## 示例\n```python\nimport tarfile\nimport tempfile\n\ntar = tarfile.open(filename)\ntar.extractall(path=tempfile.mkdtemp())\ntar.close()\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-22](https://cwe.mitre.org/data/definitions/22.html)\n- [Python 文档：`TarFile.extractall`](https://docs.python.org/3/library/tarfile.html#tarfile.TarFile.extractall)\n- [Python 文档：提取过滤器](https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter)\n\n[PEP 706]: https://peps.python.org/pep-0706/#backporting-forward-compatibility",
+        "preview": false
+    },
+    "S301": {
+        "name": "suspicious-pickle-usage",
+        "linter": "flake8-bandit",
+        "summary": "`pickle` 及其包装模块在反序列化未受信任数据时可能不安全，存在潜在安全问题",
+        "message_formats": [
+            "`pickle` 及其包装模块在反序列化未受信任数据时可能不安全，存在潜在安全问题"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否调用 `pickle` 函数或其包装模块。\n\n## 问题原因\n使用 `pickle` 和其他反序列化模块反序列化未受信任数据不安全，因为这可能允许创建任意对象，进而用于执行任意代码和产生其他意外行为。\n\n避免使用 `pickle` 和其他反序列化模块反序列化未受信任数据。相反，考虑使用更安全的格式，如 JSON。\n\n如果必须使用 `pickle` 反序列化未受信任数据，考虑使用密钥对数据进行签名，并在反序列化负载之前验证签名。这将防止攻击者向序列化数据中注入任意对象。\n\n在 [预览模式] 下，此规则还会标记对 `pickle` 函数的引用。\n\n## 示例\n```python\nimport pickle\n\nwith open(\"foo.pickle\", \"rb\") as file:\n    foo = pickle.load(file)\n```\n\n正确用法：\n```python\nimport json\n\nwith open(\"foo.json\", \"rb\") as file:\n    foo = json.load(file)\n```\n\n## 参考资料\n- [Python 文档：`pickle` — Python 对象序列化](https://docs.python.org/3/library/pickle.html)\n- [常见弱点枚举：CWE-502](https://cwe.mitre.org/data/definitions/502.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S302": {
+        "name": "suspicious-marshal-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用 `marshal` 模块进行反序列化可能存在危险",
+        "message_formats": ["使用 `marshal` 模块进行反序列化可能存在危险"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否调用 `marshal` 函数。\n\n## 问题原因\n使用 `marshal` 反序列化未受信任数据不安全，因为这可能允许创建任意对象，进而用于执行任意代码和产生其他意外行为。\n\n避免使用 `marshal` 反序列化未受信任数据。相反，考虑使用更安全的格式，如 JSON。\n\n如果必须使用 `marshal` 反序列化未受信任数据，考虑使用密钥对数据进行签名，并在反序列化负载之前验证签名。这将防止攻击者向序列化数据中注入任意对象。\n\n在 [预览模式] 下，此规则还会标记对 `marshal` 函数的引用。\n\n## 示例\n```python\nimport marshal\n\nwith open(\"foo.marshal\", \"rb\") as file:\n    foo = marshal.load(file)\n```\n\n正确用法：\n```python\nimport json\n\nwith open(\"foo.json\", \"rb\") as file:\n    foo = json.load(file)\n```\n\n## 参考资料\n- [Python 文档：`marshal` — Python 内部对象序列化](https://docs.python.org/3/library/marshal.html)\n- [常见弱点枚举：CWE-502](https://cwe.mitre.org/data/definitions/502.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S303": {
+        "name": "suspicious-insecure-hash-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用不安全的 MD2、MD4、MD5 或 SHA1 哈希函数",
+        "message_formats": ["使用不安全的 MD2、MD4、MD5 或 SHA1 哈希函数"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用弱加密哈希函数或已被破解的加密哈希函数。\n\n## 问题原因\n弱加密哈希函数或已被破解的加密哈希函数可能容易受到碰撞攻击（两个不同的输入产生相同的哈希值）或原像攻击（攻击者可以找到产生给定哈希值的输入）。这可能导致依赖这些哈希函数的应用程序出现安全漏洞。\n\n避免在安全场景中使用弱加密哈希函数或已被破解的加密哈希函数。相反，使用已知安全的哈希函数，如 SHA-256。\n\n在 [预览模式] 下，此规则还会标记对不安全哈希函数的引用。\n\n## 示例\n```python\nfrom cryptography.hazmat.primitives import hashes\n\ndigest = hashes.Hash(hashes.MD5())\ndigest.update(b\"Hello, world!\")\ndigest.finalize()\n```\n\n正确用法：\n```python\nfrom cryptography.hazmat.primitives import hashes\n\ndigest = hashes.Hash(hashes.SHA256())\ndigest.update(b\"Hello, world!\")\ndigest.finalize()\n```\n\n## 参考资料\n- [Python 文档：`hashlib` — 安全哈希和消息摘要](https://docs.python.org/3/library/hashlib.html)\n- [常见弱点枚举：CWE-327](https://cwe.mitre.org/data/definitions/327.html)\n- [常见弱点枚举：CWE-328](https://cwe.mitre.org/data/definitions/328.html)\n- [常见弱点枚举：CWE-916](https://cwe.mitre.org/data/definitions/916.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S304": {
+        "name": "suspicious-insecure-cipher-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用不安全的加密算法，请替换为已知安全的加密算法（如 AES）",
+        "message_formats": [
+            "使用不安全的加密算法，请替换为已知安全的加密算法（如 AES）"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用弱加密算法或已被破解的加密算法。\n\n## 问题原因\n弱加密算法或已被破解的加密算法可能容易受到攻击，攻击者无需知道密钥即可解密密文，或通过伪造等方式破坏加密的安全性。\n\n使用强加密、现代加密算法替代弱加密算法或已被破解的加密算法。\n\n在 [预览模式] 下，此规则还会标记对不安全加密算法的引用。\n\n## 示例\n```python\nfrom cryptography.hazmat.primitives.ciphers import Cipher, algorithms\n\nalgorithm = algorithms.ARC4(key)\ncipher = Cipher(algorithm, mode=None)\nencryptor = cipher.encryptor()\n```\n\n正确用法：\n```python\nfrom cryptography.fernet import Fernet\n\nfernet = Fernet(key)\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-327](https://cwe.mitre.org/data/definitions/327.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S305": {
+        "name": "suspicious-insecure-cipher-mode-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用不安全的分组加密算法模式，请替换为已知安全的模式（如 CBC 或 CTR）",
+        "message_formats": [
+            "使用不安全的分组加密算法模式，请替换为已知安全的模式（如 CBC 或 CTR）"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用弱加密算法模式或已被破解的加密算法模式。\n\n## 问题原因\n弱加密算法模式或已被破解的加密算法模式可能容易受到攻击，攻击者无需知道密钥即可解密密文，或通过伪造等方式破坏加密的安全性。\n\n使用强加密、现代加密算法模式替代弱加密算法模式或已被破解的加密算法模式。\n\n在 [预览模式] 下，此规则还会标记对不安全加密算法模式的引用。\n\n## 示例\n```python\nfrom cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes\n\nalgorithm = algorithms.ARC4(key)\ncipher = Cipher(algorithm, mode=modes.ECB(iv))\nencryptor = cipher.encryptor()\n```\n\n正确用法：\n```python\nfrom cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes\n\nalgorithm = algorithms.ARC4(key)\ncipher = Cipher(algorithm, mode=modes.CTR(iv))\nencryptor = cipher.encryptor()\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-327](https://cwe.mitre.org/data/definitions/327.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S306": {
+        "name": "suspicious-mktemp-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用不安全且已废弃的函数（`mktemp`）",
+        "message_formats": ["使用不安全且已废弃的函数（`mktemp`）"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `tempfile.mktemp`。\n\n## 问题原因\n`tempfile.mktemp` 返回调用时不存在的文件路径名；之后，调用者负责创建文件并使用它。这是不安全的，因为在函数返回和调用者创建文件之间，另一个进程可能会创建同名文件。\n\n`tempfile.mktemp` 已被废弃，建议使用 `tempfile.mkstemp`，该函数在调用时创建文件。考虑直接使用 `tempfile.mkstemp`，或通过上下文管理器（如 `tempfile.TemporaryFile`）使用。\n\n在 [预览模式] 下，此规则还会标记对 `tempfile.mktemp` 的引用。\n\n## 示例\n```python\nimport tempfile\n\ntmp_file = tempfile.mktemp()\nwith open(tmp_file, \"w\") as file:\n    file.write(\"Hello, world!\")\n```\n\n正确用法：\n```python\nimport tempfile\n\nwith tempfile.TemporaryFile() as file:\n    file.write(\"Hello, world!\")\n```\n\n## 参考资料\n- [Python 文档：`mktemp`](https://docs.python.org/3/library/tempfile.html#tempfile.mktemp)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S307": {
+        "name": "suspicious-eval-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用可能不安全的函数；考虑使用 `ast.literal_eval`",
+        "message_formats": [
+            "使用可能不安全的函数；考虑使用 `ast.literal_eval`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用内置的 `eval()` 函数。\n\n## 问题原因\n`eval()` 函数不安全，因为它允许执行任意代码。\n\n如果需要从字符串中计算表达式，考虑使用 `ast.literal_eval()` 替代，该函数会在表达式不是有效的 Python 字面量时抛出异常。\n\n在 [预览模式] 下，此规则还会标记对 `eval` 的引用。\n\n## 示例\n```python\nx = eval(input(\"输入一个数字： \"))\n```\n\n正确用法：\n```python\nfrom ast import literal_eval\n\nx = literal_eval(input(\"输入一个数字： \"))\n```\n\n## 参考资料\n- [Python 文档：`eval`](https://docs.python.org/3/library/functions.html#eval)\n- [Python 文档：`literal_eval`](https://docs.python.org/3/library/ast.html#ast.literal_eval)\n- [内德·巴切尔德的《Eval 确实很危险》](https://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S308": {
+        "name": "suspicious-mark-safe-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用 `mark_safe` 可能会暴露跨站脚本漏洞",
+        "message_formats": ["使用 `mark_safe` 可能会暴露跨站脚本漏洞"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否调用 `django.utils.safestring.mark_safe`。\n\n## 问题原因\n跨站脚本（XSS）漏洞允许攻击者执行任意 JavaScript。为防范 XSS 攻击，Django 模板默认假设数据是不安全的，并在渲染前自动转义恶意字符串。\n\n`django.utils.safestring.mark_safe` 将字符串标记为可安全用于 HTML 模板，绕过 XSS 保护。这很危险，因为如果字符串没有正确转义，可能会允许跨站脚本攻击。\n\n在 [预览模式] 下，此规则还会标记对 `django.utils.safestring.mark_safe` 的引用。\n\n## 示例\n```python\nfrom django.utils.safestring import mark_safe\n\ncontent = mark_safe(\"<script>alert('Hello, world!')</script>\")  # XSS 漏洞。\n```\n\n正确用法：\n```python\ncontent = \"<script>alert('Hello, world!')</script>\"  # 渲染时安全。\n```\n\n## 参考资料\n- [Django 文档：`mark_safe`](https://docs.djangoproject.com/en/dev/ref/utils/#django.utils.safestring.mark_safe)\n- [Django 文档：跨站脚本（XSS）保护](https://docs.djangoproject.com/en/dev/topics/security/#cross-site-scripting-xss-protection)\n- [常见弱点枚举：CWE-80](https://cwe.mitre.org/data/definitions/80.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S310": {
+        "name": "suspicious-url-open-usage",
+        "linter": "flake8-bandit",
+        "summary": "审核 URL 打开函数允许的协议。允许使用 `file:` 或自定义协议通常是意外行为。",
+        "message_formats": [
+            "审核 URL 打开函数允许的协议。允许使用 `file:` 或自定义协议通常是意外行为。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查 URL 打开函数是否使用意外的协议。\n\n## 问题原因\n某些 URL 打开函数允许使用 `file:` 或自定义协议（而非 `http:` 或 `https:`）。攻击者可能利用这些协议访问或修改未授权资源，导致意外行为。\n\n为降低此风险，审核所有 URL 打开函数的使用，确保仅使用允许的协议（例如，允许 `http:` 和 `https:`，禁止 `file:` 和 `ftp:`）。\n\n在 [预览模式] 下，此规则还会标记对 URL 打开函数的引用。\n\n## 示例\n```python\nfrom urllib.request import urlopen\n\nurl = input(\"输入一个 URL： \")\n\nwith urlopen(url) as response:\n    ...\n```\n\n正确用法：\n```python\nfrom urllib.request import urlopen\n\nurl = input(\"输入一个 URL： \")\n\nif not url.startswith((\"http:\", \"https:\")):\n    raise ValueError(\"URL 必须以 'http:' 或 'https:' 开头\")\n\nwith urlopen(url) as response:\n    ...\n```\n\n## 参考资料\n- [Python 文档：`urlopen`](https://docs.python.org/3/library/urllib.request.html#urllib.request.urlopen)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S311": {
+        "name": "suspicious-non-cryptographic-random-usage",
+        "linter": "flake8-bandit",
+        "summary": "标准伪随机数生成器不适合加密用途",
+        "message_formats": ["标准伪随机数生成器不适合加密用途"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用加密强度弱的伪随机数生成器。\n\n## 问题原因\n加密强度弱的伪随机数生成器不安全，因为它们容易被预测。这可能允许攻击者猜测生成的数字，破坏系统的安全性。\n\n相反，当生成用于安全目的的随机数时，使用加密安全的伪随机数生成器（例如使用 [`secrets` 模块](https://docs.python.org/3/library/secrets.html)）。\n\n在 [预览模式] 下，此规则还会标记对这些生成器的引用。\n\n## 示例\n```python\nimport random\n\nrandom.randrange(10)\n```\n\n正确用法：\n```python\nimport secrets\n\nsecrets.randbelow(10)\n```\n\n## 参考资料\n- [Python 文档：`random` — 生成伪随机数](https://docs.python.org/3/library/random.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S312": {
+        "name": "suspicious-telnet-usage",
+        "linter": "flake8-bandit",
+        "summary": "Telnet 被认为是不安全的。请使用 SSH 或其他加密协议。",
+        "message_formats": [
+            "Telnet 被认为是不安全的。请使用 SSH 或其他加密协议。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用与 Telnet 相关的函数。\n\n## 问题原因\nTelnet 被认为是不安全的，因为它不会对传输的数据进行加密，容易受到多种攻击。\n\n相反，考虑使用更安全的协议，如 SSH。\n\n在 [预览模式] 下，此规则还会标记对与 Telnet 相关函数的引用。\n\n## 参考资料\n- [Python 文档：`telnetlib` — Telnet 客户端](https://docs.python.org/3/library/telnetlib.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S313": {
+        "name": "suspicious-xmlc-element-tree-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数",
+        "message_formats": [
+            "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用不安全的 XML 解析器。\n\n## 问题原因\n许多 XML 解析器容易受到 XML 攻击（如实体扩展），这些攻击通过利用递归来导致过度的内存和 CPU 占用。攻击者可能利用这些方法访问未授权资源。\n\n解析未受信任的 XML 数据时，考虑使用 `defusedxml` 包，以防范 XML 攻击。\n\n在 [预览模式] 下，此规则还会标记对不安全 XML 解析器的引用。\n\n## 示例\n```python\nfrom xml.etree.cElementTree import parse\n\ntree = parse(\"untrusted.xml\")  # 容易受到 XML 攻击。\n```\n\n正确用法：\n```python\nfrom defusedxml.cElementTree import parse\n\ntree = parse(\"untrusted.xml\")\n```\n\n## 参考资料\n- [Python 文档：`xml` — XML 处理模块](https://docs.python.org/3/library/xml.html)\n- [PyPI: `defusedxml`](https://pypi.org/project/defusedxml/)\n- [常见弱点枚举：CWE-400](https://cwe.mitre.org/data/definitions/400.html)\n- [常见弱点枚举：CWE-776](https://cwe.mitre.org/data/definitions/776.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S314": {
+        "name": "suspicious-xml-element-tree-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数",
+        "message_formats": [
+            "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用不安全的 XML 解析器。\n\n## 问题原因\n许多 XML 解析器容易受到 XML 攻击（如实体扩展），这些攻击通过利用递归来导致过度的内存和 CPU 占用。攻击者可能利用这些方法访问未授权资源。\n\n解析未受信任的 XML 数据时，考虑使用 `defusedxml` 包，以防范 XML 攻击。\n\n在 [预览模式] 下，此规则还会标记对不安全 XML 解析器的引用。\n\n## 示例\n```python\nfrom xml.etree.ElementTree import parse\n\ntree = parse(\"untrusted.xml\")  # 容易受到 XML 攻击。\n```\n\n正确用法：\n```python\nfrom defusedxml.ElementTree import parse\n\ntree = parse(\"untrusted.xml\")\n```\n\n## 参考资料\n- [Python 文档：`xml` — XML 处理模块](https://docs.python.org/3/library/xml.html)\n- [PyPI: `defusedxml`](https://pypi.org/project/defusedxml/)\n- [常见弱点枚举：CWE-400](https://cwe.mitre.org/data/definitions/400.html)\n- [常见弱点枚举：CWE-776](https://cwe.mitre.org/data/definitions/776.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S315": {
+        "name": "suspicious-xml-expat-reader-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数",
+        "message_formats": [
+            "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用不安全的 XML 解析器。\n\n## 问题原因\n许多 XML 解析器容易受到 XML 攻击（如实体扩展），这些攻击通过利用递归来导致过度的内存和 CPU 占用。攻击者可能利用这些方法访问未授权资源。\n\n解析未受信任的 XML 数据时，考虑使用 `defusedxml` 包，以防范 XML 攻击。\n\n在 [预览模式] 下，此规则还会标记对不安全 XML 解析器的引用。\n\n## 示例\n```python\nfrom xml.sax.expatreader import create_parser\n\nparser = create_parser()\n```\n\n正确用法：\n```python\nfrom defusedxml.sax import create_parser\n\nparser = create_parser()\n```\n\n## 参考资料\n- [Python 文档：`xml` — XML 处理模块](https://docs.python.org/3/library/xml.html)\n- [PyPI: `defusedxml`](https://pypi.org/project/defusedxml/)\n- [常见弱点枚举：CWE-400](https://cwe.mitre.org/data/definitions/400.html)\n- [常见弱点枚举：CWE-776](https://cwe.mitre.org/data/definitions/776.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S316": {
+        "name": "suspicious-xml-expat-builder-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数",
+        "message_formats": [
+            "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用不安全的 XML 解析器。\n\n## 问题原因\n许多 XML 解析器容易受到 XML 攻击（如实体扩展），这些攻击通过利用递归来导致过度的内存和 CPU 占用。攻击者可能利用这些方法访问未授权资源。\n\n解析未受信任的 XML 数据时，考虑使用 `defusedxml` 包，以防范 XML 攻击。\n\n在 [预览模式] 下，此规则还会标记对不安全 XML 解析器的引用。\n\n## 示例\n```python\nfrom xml.dom.expatbuilder import parse\n\nparse(\"untrusted.xml\")\n```\n\n正确用法：\n```python\nfrom defusedxml.expatbuilder import parse\n\ntree = parse(\"untrusted.xml\")\n```\n\n## 参考资料\n- [Python 文档：`xml` — XML 处理模块](https://docs.python.org/3/library/xml.html)\n- [PyPI: `defusedxml`](https://pypi.org/project/defusedxml/)\n- [常见弱点枚举：CWE-400](https://cwe.mitre.org/data/definitions/400.html)\n- [常见弱点枚举：CWE-776](https://cwe.mitre.org/data/definitions/776.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S317": {
+        "name": "suspicious-xml-sax-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数",
+        "message_formats": [
+            "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用不安全的 XML 解析器。\n\n## 问题原因\n许多 XML 解析器容易受到 XML 攻击（如实体扩展），这些攻击通过利用递归来导致过度的内存和 CPU 占用。攻击者可能利用这些方法访问未授权资源。\n\n解析未受信任的 XML 数据时，考虑使用 `defusedxml` 包，以防范 XML 攻击。\n\n在 [预览模式] 下，此规则还会标记对不安全 XML 解析器的引用。\n\n## 示例\n```python\nfrom xml.sax import make_parser\n\nmake_parser()\n```\n\n正确用法：\n```python\nfrom defusedxml.sax import make_parser\n\nmake_parser()\n```\n\n## 参考资料\n- [Python 文档：`xml` — XML 处理模块](https://docs.python.org/3/library/xml.html)\n- [PyPI: `defusedxml`](https://pypi.org/project/defusedxml/)\n- [常见弱点枚举：CWE-400](https://cwe.mitre.org/data/definitions/400.html)\n- [常见弱点枚举：CWE-776](https://cwe.mitre.org/data/definitions/776.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S318": {
+        "name": "suspicious-xml-mini-dom-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数",
+        "message_formats": [
+            "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用不安全的 XML 解析器。\n\n## 问题原因\n许多 XML 解析器容易受到 XML 攻击（如实体扩展），这些攻击通过利用递归来导致过度的内存和 CPU 占用。攻击者可能利用这些方法访问未授权资源。\n\n解析未受信任的 XML 数据时，考虑使用 `defusedxml` 包，以防范 XML 攻击。\n\n在 [预览模式] 下，此规则还会标记对不安全 XML 解析器的引用。\n\n## 示例\n```python\nfrom xml.dom.minidom import parse\n\ncontent = parse(\"untrusted.xml\")\n```\n\n正确用法：\n```python\nfrom defusedxml.minidom import parse\n\ncontent = parse(\"untrusted.xml\")\n```\n\n## 参考资料\n- [Python 文档：`xml` — XML 处理模块](https://docs.python.org/3/library/xml.html)\n- [PyPI: `defusedxml`](https://pypi.org/project/defusedxml/)\n- [常见弱点枚举：CWE-400](https://cwe.mitre.org/data/definitions/400.html)\n- [常见弱点枚举：CWE-776](https://cwe.mitre.org/data/definitions/776.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S319": {
+        "name": "suspicious-xml-pull-dom-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数",
+        "message_formats": [
+            "使用 `xml` 解析未受信任的数据已知容易受到 XML 攻击；使用 `defusedxml` 的等效函数"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用不安全的 XML 解析器。\n\n## 问题原因\n许多 XML 解析器容易受到 XML 攻击（如实体扩展），这些攻击通过利用递归来导致过度的内存和 CPU 占用。攻击者可能利用这些方法访问未授权资源。\n\n解析未受信任的 XML 数据时，考虑使用 `defusedxml` 包，以防范 XML 攻击。\n\n在 [预览模式] 下，此规则还会标记对不安全 XML 解析器的引用。\n\n## 示例\n```python\nfrom xml.dom.pulldom import parse\n\ncontent = parse(\"untrusted.xml\")\n```\n\n正确用法：\n```python\nfrom defusedxml.pulldom import parse\n\ncontent = parse(\"untrusted.xml\")\n```\n\n## 参考资料\n- [Python 文档：`xml` — XML 处理模块](https://docs.python.org/3/library/xml.html)\n- [PyPI: `defusedxml`](https://pypi.org/project/defusedxml/)\n- [常见弱点枚举：CWE-400](https://cwe.mitre.org/data/definitions/400.html)\n- [常见弱点枚举：CWE-776](https://cwe.mitre.org/data/definitions/776.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S320": {
+        "name": "suspicious-xmle-tree-usage",
+        "linter": "flake8-bandit",
+        "summary": "使用 `lxml` 解析未受信任的数据已知容易受到 XML 攻击",
+        "message_formats": [
+            "使用 `lxml` 解析未受信任的数据已知容易受到 XML 攻击"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用不安全的 XML 解析器。\n\n## 问题原因\n许多 XML 解析器容易受到 XML 攻击（如实体扩展），这些攻击通过利用递归来导致过度的内存和 CPU 占用。攻击者可能利用这些方法访问未授权资源。\n\n在 [预览模式] 下，此规则还会标记对不安全 XML 解析器的引用。\n\n## 示例\n```python\nfrom lxml import etree\n\ncontent = etree.parse(\"untrusted.xml\")\n```\n\n## 参考资料\n- [PyPI: `lxml`](https://pypi.org/project/lxml/)\n- [常见弱点枚举：CWE-400](https://cwe.mitre.org/data/definitions/400.html)\n- [常见弱点枚举：CWE-776](https://cwe.mitre.org/data/definitions/776.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S321": {
+        "name": "suspicious-ftp-lib-usage",
+        "linter": "flake8-bandit",
+        "summary": "正在调用与 FTP 相关的函数。FTP 被认为是不安全的。请使用 SSH/SFTP/SCP 或其他加密协议。",
+        "message_formats": [
+            "正在调用与 FTP 相关的函数。FTP 被认为是不安全的。请使用 SSH/SFTP/SCP 或其他加密协议。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用与 FTP 相关的函数。\n\n## 问题原因\nFTP 被认为是不安全的，因为它不会对传输的数据进行加密，容易受到多种攻击。\n\n相反，考虑使用 FTPS（通过 SSL/TLS 保障 FTP 安全）或 SFTP。\n\n在 [预览模式] 下，此规则还会标记对与 FTP 相关函数的引用。\n\n## 参考资料\n- [Python 文档：`ftplib` — FTP 协议客户端](https://docs.python.org/3/library/ftplib.html)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S323": {
+        "name": "suspicious-unverified-context-usage",
+        "linter": "flake8-bandit",
+        "summary": "Python 允许通过 `_create_unverified_context` 使用不安全的上下文，这会恢复到之前不验证证书或执行主机名检查的行为。",
+        "message_formats": [
+            "Python 允许通过 `_create_unverified_context` 使用不安全的上下文，这会恢复到之前不验证证书或执行主机名检查的行为。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `ssl._create_unverified_context`。\n\n## 问题原因\n[PEP 476] 在 Python 标准库 HTTP 客户端中默认启用了证书和主机名验证。在此之前，Python 默认不验证证书，这可能允许攻击者通过拦截和修改客户端与服务器之间的流量来执行“中间人”攻击。\n\n为支持遗留环境，`ssl._create_unverified_context` 会恢复到之前不执行验证的行为。否则，使用 `ssl.create_default_context` 创建安全上下文。\n\n在 [预览模式] 下，此规则还会标记对 `ssl._create_unverified_context` 的引用。\n\n## 示例\n```python\nimport ssl\n\ncontext = ssl._create_unverified_context()\n```\n\n正确用法：\n```python\nimport ssl\n\ncontext = ssl.create_default_context()\n```\n\n## 参考资料\n- [PEP 476 – 为标准库 HTTP 客户端默认启用证书验证：选择退出](https://peps.python.org/pep-0476/#opting-out)\n- [Python 文档：`ssl` — TLS/SSL 套接字对象包装器](https://docs.python.org/3/library/ssl.html)\n\n[PEP 476]: https://peps.python.org/pep-0476/\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "S324": {
+        "name": "hashlib-insecure-hash-function",
+        "linter": "flake8-bandit",
+        "summary": "`{library}` 中可能使用了不安全的哈希函数：`{string}`",
+        "message_formats": [
+            "`{library}` 中可能使用了不安全的哈希函数：`{string}`"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查 `hashlib` 和 `crypt` 库中是否使用了弱加密哈希函数或已被破解的加密哈希函数。\n\n## 问题原因\n弱加密哈希函数或已被破解的加密哈希函数可能容易受到碰撞攻击（两个不同的输入产生相同的哈希值）或原像攻击（攻击者可以找到产生给定哈希值的输入）。这可能导致依赖这些哈希函数的应用程序出现安全漏洞。\n\n避免在安全场景中使用弱加密哈希函数或已被破解的加密哈希函数。相反，使用已知安全的哈希函数，如 SHA256。\n\n## 示例\n```python\nimport hashlib\n\n\ndef certificate_is_valid(certificate: bytes, known_hash: str) -> bool:\n    hash = hashlib.md5(certificate).hexdigest()\n    return hash == known_hash\n```\n\n正确用法：\n```python\nimport hashlib\n\n\ndef certificate_is_valid(certificate: bytes, known_hash: str) -> bool:\n    hash = hashlib.sha256(certificate).hexdigest()\n    return hash == known_hash\n```\n\n或者，如果哈希算法不用于安全场景（例如作为非加密的单向压缩函数），添加 `usedforsecurity=False`：\n```python\nimport hashlib\n\n\ndef certificate_is_valid(certificate: bytes, known_hash: str) -> bool:\n    hash = hashlib.md5(certificate, usedforsecurity=False).hexdigest()\n    return hash == known_hash\n```\n\n## 参考资料\n- [Python 文档：`hashlib` — 安全哈希和消息摘要](https://docs.python.org/3/library/hashlib.html)\n- [Python 文档：`crypt` — 检查 Unix 密码的函数](https://docs.python.org/3/library/crypt.html)\n- [Python 文档：`FIPS` - 符合 FIPS 标准的 hashlib 实现](https://docs.python.org/3/library/hashlib.html#hashlib.algorithms_guaranteed)\n- [常见弱点枚举：CWE-327](https://cwe.mitre.org/data/definitions/327.html)\n- [常见弱点枚举：CWE-328](https://cwe.mitre.org/data/definitions/328.html)\n- [常见弱点枚举：CWE-916](https://cwe.mitre.org/data/definitions/916.html)",
+        "preview": false
+    },
+    "S401": {
+        "name": "suspicious-telnetlib-import",
+        "linter": "flake8-bandit",
+        "summary": "`telnetlib` 及相关模块被认为是不安全的。请使用 SSH 或其他加密协议。",
+        "message_formats": [
+            "`telnetlib` 及相关模块被认为是不安全的。请使用 SSH 或其他加密协议。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `telnetlib` 模块。\n\n## 问题原因\nTelnet 被认为是不安全的。它自 3.11 版本起被废弃，并在 3.13 版本中被移除。相反，使用 SSH 或其他加密协议。\n\n## 示例\n```python\nimport telnetlib\n```\n\n## 参考资料\n- [Python 文档：`telnetlib` - Telnet 客户端](https://docs.python.org/3.12/library/telnetlib.html#module-telnetlib)\n- [PEP 594: `telnetlib`](https://peps.python.org/pep-0594/#telnetlib)",
+        "preview": true
+    },
+    "S402": {
+        "name": "suspicious-ftplib-import",
+        "linter": "flake8-bandit",
+        "summary": "`ftplib` 及相关模块被认为是不安全的。请使用 SSH、SFTP、SCP 或其他加密协议。",
+        "message_formats": [
+            "`ftplib` 及相关模块被认为是不安全的。请使用 SSH、SFTP、SCP 或其他加密协议。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `ftplib` 模块。\n\n## 问题原因\nFTP 被认为是不安全的。相反，使用 SSH、SFTP、SCP 或其他加密协议。\n\n## 示例\n```python\nimport ftplib\n```\n\n## 参考资料\n- [Python 文档：`ftplib` - FTP 协议客户端](https://docs.python.org/3/library/ftplib.html)",
+        "preview": true
+    },
+    "S403": {
+        "name": "suspicious-pickle-import",
+        "linter": "flake8-bandit",
+        "summary": "`pickle`、`cPickle`、`dill` 和 `shelve` 模块可能不安全",
+        "message_formats": [
+            "`pickle`、`cPickle`、`dill` 和 `shelve` 模块可能不安全"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `pickle`、`cPickle`、`dill` 和 `shelve` 模块。\n\n## 问题原因\n恶意构造的 pickle 数据可能在反序列化过程中执行任意代码。请考虑与这些模块相关的潜在安全隐患。\n\n## 示例\n```python\nimport pickle\n```\n\n## 参考资料\n- [Python 文档：`pickle` — Python 对象序列化](https://docs.python.org/3/library/pickle.html)",
+        "preview": true
+    },
+    "S404": {
+        "name": "suspicious-subprocess-import",
+        "linter": "flake8-bandit",
+        "summary": "`subprocess` 模块可能不安全",
+        "message_formats": ["`subprocess` 模块可能不安全"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `subprocess` 模块。\n\n## 问题原因\n恶意命令可能注入到 subprocess 调用中。请考虑与该模块相关的潜在安全隐患。\n\n## 示例\n```python\nimport subprocess\n```",
+        "preview": true
+    },
+    "S405": {
+        "name": "suspicious-xml-etree-import",
+        "linter": "flake8-bandit",
+        "summary": "`xml.etree` 方法容易受到 XML 攻击",
+        "message_formats": ["`xml.etree` 方法容易受到 XML 攻击"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `xml.etree.cElementTree` 和 `xml.etree.ElementTree` 模块\n\n## 问题原因\n使用这些模块的各种方法解析未受信任的 XML 数据已知容易受到 XML 攻击。将易受攻击的导入替换为等效的 `defusedxml` 包，或确保在解析 XML 数据之前调用 `defusedxml.defuse_stdlib()`。\n\n## 示例\n```python\nimport xml.etree.cElementTree\n```",
+        "preview": true
+    },
+    "S406": {
+        "name": "suspicious-xml-sax-import",
+        "linter": "flake8-bandit",
+        "summary": "`xml.sax` 方法容易受到 XML 攻击",
+        "message_formats": ["`xml.sax` 方法容易受到 XML 攻击"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `xml.sax` 模块。\n\n## 问题原因\n使用这些模块的各种方法解析未受信任的 XML 数据已知容易受到 XML 攻击。将易受攻击的导入替换为等效的 `defusedxml` 包，或确保在解析 XML 数据之前调用 `defusedxml.defuse_stdlib()`。\n\n## 示例\n```python\nimport xml.sax\n```",
+        "preview": true
+    },
+    "S407": {
+        "name": "suspicious-xml-expat-import",
+        "linter": "flake8-bandit",
+        "summary": "`xml.dom.expatbuilder` 容易受到 XML 攻击",
+        "message_formats": ["`xml.dom.expatbuilder` 容易受到 XML 攻击"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `xml.dom.expatbuilder` 模块。\n\n## 问题原因\n使用这些模块的各种方法解析未受信任的 XML 数据已知容易受到 XML 攻击。将易受攻击的导入替换为等效的 `defusedxml` 包，或确保在解析 XML 数据之前调用 `defusedxml.defuse_stdlib()`。\n\n## 示例\n```python\nimport xml.dom.expatbuilder\n```",
+        "preview": true
+    },
+    "S408": {
+        "name": "suspicious-xml-minidom-import",
+        "linter": "flake8-bandit",
+        "summary": "`xml.dom.minidom` 容易受到 XML 攻击",
+        "message_formats": ["`xml.dom.minidom` 容易受到 XML 攻击"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `xml.dom.minidom` 模块。\n\n## 问题原因\n使用这些模块的各种方法解析未受信任的 XML 数据已知容易受到 XML 攻击。将易受攻击的导入替换为等效的 `defusedxml` 包，或确保在解析 XML 数据之前调用 `defusedxml.defuse_stdlib()`。\n\n## 示例\n```python\nimport xml.dom.minidom\n```",
+        "preview": true
+    },
+    "S409": {
+        "name": "suspicious-xml-pulldom-import",
+        "linter": "flake8-bandit",
+        "summary": "`xml.dom.pulldom` 容易受到 XML 攻击",
+        "message_formats": ["`xml.dom.pulldom` 容易受到 XML 攻击"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `xml.dom.pulldom` 模块。\n\n## 问题原因\n使用这些模块的各种方法解析未受信任的 XML 数据已知容易受到 XML 攻击。将易受攻击的导入替换为等效的 `defusedxml` 包，或确保在解析 XML 数据之前调用 `defusedxml.defuse_stdlib()`。\n\n## 示例\n```python\nimport xml.dom.pulldom\n```",
+        "preview": true
+    },
+    "S410": {
+        "name": "suspicious-lxml-import",
+        "linter": "flake8-bandit",
+        "summary": "`lxml` 容易受到 XML 攻击",
+        "message_formats": ["`lxml` 容易受到 XML 攻击"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 已移除\n此规则已被移除，因为 `lxml` 库已修改以解决已知漏洞和不安全的默认设置。因此，`defusedxml` 库不再必要，`defusedxml` 已[废弃]其 `lxml` 模块。\n\n## 功能说明\n检查是否导入 `lxml` 模块。\n\n## 问题原因\n使用 `lxml` 模块的各种方法解析未受信任的 XML 数据已知容易受到 XML 攻击。将易受攻击的导入替换为等效的 `defusedxml` 包。\n\n## 示例\n```python\nimport lxml\n```\n\n[废弃]: https://github.com/tiran/defusedxml/blob/c7445887f5e1bcea470a16f61369d29870cfcfe1/README.md#defusedxmllxml",
+        "preview": false
+    },
+    "S411": {
+        "name": "suspicious-xmlrpc-import",
+        "linter": "flake8-bandit",
+        "summary": "XMLRPC 容易受到远程 XML 攻击",
+        "message_formats": ["XMLRPC 容易受到远程 XML 攻击"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `xmlrpc` 模块。\n\n## 问题原因\nXMLRPC 是一个特别危险的 XML 模块，因为它还涉及通过网络传输数据。使用 `defused.xmlrpc.monkey_patch()` 函数对 `xmlrpclib` 模块进行猴子补丁，以缓解远程 XML 攻击。\n\n## 示例\n```python\nimport xmlrpc\n```",
+        "preview": true
+    },
+    "S412": {
+        "name": "suspicious-httpoxy-import",
+        "linter": "flake8-bandit",
+        "summary": "`httpoxy` 是一组影响在 CGI 或类 CGI 环境中运行的应用程序代码的漏洞。Web 应用程序应避免使用 CGI。",
+        "message_formats": [
+            "`httpoxy` 是一组影响在 CGI 或类 CGI 环境中运行的应用程序代码的漏洞。Web 应用程序应避免使用 CGI。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `wsgiref.handlers.CGIHandler` 和\n`twisted.web.twcgi.CGIScript`。\n\n## 问题原因\nhttpoxy 是一组影响在 CGI 或类 CGI 环境中运行的应用程序代码的漏洞。Web 应用程序应避免使用 CGI，以防止此类攻击。\n\n## 示例\n```python\nimport wsgiref.handlers.CGIHandler\n```\n\n## 参考资料\n- [httpoxy 网站](https://httpoxy.org/)",
+        "preview": true
+    },
+    "S413": {
+        "name": "suspicious-pycrypto-import",
+        "linter": "flake8-bandit",
+        "summary": "`pycrypto` 库已知存在公开披露的缓冲区溢出漏洞",
+        "message_formats": ["`pycrypto` 库已知存在公开披露的缓冲区溢出漏洞"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入多个不安全的加密模块。\n\n## 问题原因\n`pycrypto` 库已知存在公开披露的缓冲区溢出漏洞。它不再积极维护，并已被废弃，建议使用 `pyca/cryptography` 库。\n\n## 示例\n```python\nimport Crypto.Random\n```\n\n## 参考资料\n- [缓冲区溢出问题](https://github.com/pycrypto/pycrypto/issues/176)",
+        "preview": true
+    },
+    "S415": {
+        "name": "suspicious-pyghmi-import",
+        "linter": "flake8-bandit",
+        "summary": "正在导入与 IPMI 相关的模块。请优先使用加密协议而非 IPMI。",
+        "message_formats": [
+            "正在导入与 IPMI 相关的模块。请优先使用加密协议而非 IPMI。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否导入 `pyghmi` 模块。\n\n## 问题原因\n`pyghmi` 是一个与 IPMI 相关的模块，但 IPMI 被认为是不安全的。相反，使用加密协议。\n\n## 示例\n```python\nimport pyghmi\n```\n\n## 参考资料\n- [缓冲区溢出问题](https://github.com/pycrypto/pycrypto/issues/176)",
+        "preview": true
+    },
+    "S501": {
+        "name": "request-with-no-cert-validation",
+        "linter": "flake8-bandit",
+        "summary": "可能使用 `{string}` 调用并设置 `verify=False`，禁用了 SSL 证书检查",
+        "message_formats": [
+            "可能使用 `{string}` 调用并设置 `verify=False`，禁用了 SSL 证书检查"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在禁用 SSL 证书检查的 HTTPS 请求。\n\n## 问题原因\n如果不验证 SSL 证书，攻击者可能通过拦截和修改客户端与服务器之间的流量来执行“中间人”攻击。\n\n## 示例\n```python\nimport requests\n\nrequests.get(\"https://www.example.com\", verify=False)\n```\n\n正确用法：\n```python\nimport requests\n\nrequests.get(\"https://www.example.com\")  # 默认情况下，`verify=True`。\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-295](https://cwe.mitre.org/data/definitions/295.html)",
+        "preview": false
+    },
+    "S502": {
+        "name": "ssl-insecure-version",
+        "linter": "flake8-bandit",
+        "summary": "使用不安全的 SSL 协议进行调用：`{protocol}`",
+        "message_formats": ["使用不安全的 SSL 协议进行调用：`{protocol}`"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在使用不安全的 SSL 和 TLS 协议版本作为参数的函数调用。\n\n## 问题原因\n所有版本的 SSL 和早期版本的 TLS 中都发现了多个高度公开的可利用漏洞。以下版本被认为是不安全的，应避免使用：\n- SSL v2\n- SSL v3\n- TLS v1\n- TLS v1.1\n\n此方法支持检测 Python 内置的 `ssl` 模块和 `pyOpenSSL` 模块。\n\n## 示例\n```python\nimport ssl\n\nssl.wrap_socket(ssl_version=ssl.PROTOCOL_TLSv1)\n```\n\n正确用法：\n```python\nimport ssl\n\nssl.wrap_socket(ssl_version=ssl.PROTOCOL_TLSv1_2)\n```",
+        "preview": false
+    },
+    "S503": {
+        "name": "ssl-with-bad-defaults",
+        "linter": "flake8-bandit",
+        "summary": "参数默认值设置为不安全的 SSL 协议：`{protocol}`",
+        "message_formats": ["参数默认值设置为不安全的 SSL 协议：`{protocol}`"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在将默认参数设置为不安全的 SSL 和 TLS 协议版本的函数定义。\n\n## 问题原因\n所有版本的 SSL 和早期版本的 TLS 中都发现了多个高度公开的可利用漏洞。以下版本被认为是不安全的，应避免使用：\n- SSL v2\n- SSL v3\n- TLS v1\n- TLS v1.1\n\n## 示例\n\n```python\nimport ssl\n\n\ndef func(version=ssl.PROTOCOL_TLSv1): ...\n```\n\n正确用法：\n\n```python\nimport ssl\n\n\ndef func(version=ssl.PROTOCOL_TLSv1_2): ...\n```",
+        "preview": false
+    },
+    "S504": {
+        "name": "ssl-with-no-version",
+        "linter": "flake8-bandit",
+        "summary": "调用 `ssl.wrap_socket` 时未指定 `ssl_version`",
+        "message_formats": ["调用 `ssl.wrap_socket` 时未指定 `ssl_version`"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在调用 `ssl.wrap_socket()` 但未指定 `ssl_version` 的情况。\n\n## 问题原因\n已知此方法提供的默认值会最大化兼容性，但允许使用不安全的协议。\n\n## 示例\n```python\nimport ssl\n\nssl.wrap_socket()\n```\n\n正确用法：\n```python\nimport ssl\n\nssl.wrap_socket(ssl_version=ssl.PROTOCOL_TLSv1_2)\n```",
+        "preview": false
+    },
+    "S505": {
+        "name": "weak-cryptographic-key",
+        "linter": "flake8-bandit",
+        "summary": "{cryptographic_key} 密钥长度低于 {minimum_key_size} 位被认为是可破解的",
+        "message_formats": [
+            "{cryptographic_key} 密钥长度低于 {minimum_key_size} 位被认为是可破解的"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用密钥长度存在漏洞的加密密钥。\n\n## 问题原因\n小密钥容易被破解。对于 DSA 和 RSA，密钥长度应至少为 2048 位。对于 EC，密钥长度应至少为 224 位。\n\n## 示例\n```python\nfrom cryptography.hazmat.primitives.asymmetric import dsa, ec\n\ndsa.generate_private_key(key_size=512)\nec.generate_private_key(curve=ec.SECT163K1())\n```\n\n正确用法：\n```python\nfrom cryptography.hazmat.primitives.asymmetric import dsa, ec\n\ndsa.generate_private_key(key_size=4096)\nec.generate_private_key(curve=ec.SECP384R1())\n```\n\n## 参考资料\n- [CSRC: 加密算法和密钥长度使用的过渡](https://csrc.nist.gov/pubs/sp/800/131/a/r2/final)",
+        "preview": false
+    },
+    "S506": {
+        "name": "unsafe-yaml-load",
+        "linter": "flake8-bandit",
+        "summary": "可能使用不安全的加载器 `{name}` 调用 `yaml.load`。允许实例化任意对象。考虑使用 `yaml.safe_load`。",
+        "message_formats": [
+            "可能使用不安全的加载器 `{name}` 调用 `yaml.load`。允许实例化任意对象。考虑使用 `yaml.safe_load`。",
+            "可能使用不安全的 `yaml.load`。允许实例化任意对象。考虑使用 `yaml.safe_load`。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `yaml.load` 函数。\n\n## 问题原因\n对未受信任的 YAML 文件运行 `yaml.load` 函数是不安全的，因为 `yaml.load` 允许创建任意 Python 对象，进而用于执行任意代码。\n\n相反，考虑使用 `yaml.safe_load`，它允许创建简单的 Python 对象（如整数和列表），但禁止创建更复杂的对象（如函数和类）。\n\n## 示例\n```python\nimport yaml\n\nyaml.load(untrusted_yaml)\n```\n\n正确用法：\n```python\nimport yaml\n\nyaml.safe_load(untrusted_yaml)\n```\n\n## 参考资料\n- [PyYAML 文档：加载 YAML](https://pyyaml.org/wiki/PyYAMLDocumentation)\n- [常见弱点枚举：CWE-20](https://cwe.mitre.org/data/definitions/20.html)",
+        "preview": false
+    },
+    "S507": {
+        "name": "ssh-no-host-key-verification",
+        "linter": "flake8-bandit",
+        "summary": "Paramiko 调用设置为自动信任未知主机密钥的策略",
+        "message_formats": ["Paramiko 调用设置为自动信任未知主机密钥的策略"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在在 Paramiko 中禁用 SSH 验证的策略使用。\n\n## 问题原因\n默认情况下，Paramiko 在建立 SSH 连接时会检查远程主机的身份。禁用验证可能导致客户端连接到恶意主机，而客户端却不知情。\n\n## 示例\n```python\nfrom paramiko import client\n\nssh_client = client.SSHClient()\nssh_client.set_missing_host_key_policy(client.AutoAddPolicy)\n```\n\n正确用法：\n```python\nfrom paramiko import client\n\nssh_client = client.SSHClient()\nssh_client.set_missing_host_key_policy(client.RejectPolicy)\n```\n\n## 参考资料\n- [Paramiko 文档：set_missing_host_key_policy](https://docs.paramiko.org/en/latest/api/client.html#paramiko.client.SSHClient.set_missing_host_key_policy)",
+        "preview": false
+    },
+    "S508": {
+        "name": "snmp-insecure-version",
+        "linter": "flake8-bandit",
+        "summary": "使用 SNMPv1 和 SNMPv2 是不安全的。如果可能，请使用 SNMPv3。",
+        "message_formats": [
+            "使用 SNMPv1 和 SNMPv2 是不安全的。如果可能，请使用 SNMPv3。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 SNMPv1 或 SNMPv2。\n\n## 问题原因\nSNMPv1 和 SNMPv2 协议被认为是不安全的，因为它们不支持加密。相反，优先使用 SNMPv3，它支持加密。\n\n## 示例\n```python\nfrom pysnmp.hlapi import CommunityData\n\nCommunityData(\"public\", mpModel=0)\n```\n\n正确用法：\n```python\nfrom pysnmp.hlapi import CommunityData\n\nCommunityData(\"public\", mpModel=2)\n```\n\n## 参考资料\n- [网络安全和基础设施安全局 (CISA)：警报 TA17-156A](https://www.cisa.gov/news-events/alerts/2017/06/05/reducing-risk-snmp-abuse)\n- [常见弱点枚举：CWE-319](https://cwe.mitre.org/data/definitions/319.html)",
+        "preview": false
+    },
+    "S509": {
+        "name": "snmp-weak-cryptography",
+        "linter": "flake8-bandit",
+        "summary": "不应使用未加密的 SNMPv3。`noAuthNoPriv` 和 `authNoPriv` 是不安全的。",
+        "message_formats": [
+            "不应使用未加密的 SNMPv3。`noAuthNoPriv` 和 `authNoPriv` 是不安全的。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用未加密的 SNMPv3 协议。\n\n## 问题原因\n未加密的 SNMPv3 通信可能被未授权方拦截和读取。相反，使用 SNMPv3 时应启用加密。\n\n## 示例\n```python\nfrom pysnmp.hlapi import UsmUserData\n\nUsmUserData(\"user\")\n```\n\n正确用法：\n```python\nfrom pysnmp.hlapi import UsmUserData\n\nUsmUserData(\"user\", \"authkey\", \"privkey\")\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-319](https://cwe.mitre.org/data/definitions/319.html)",
+        "preview": false
+    },
+    "S601": {
+        "name": "paramiko-call",
+        "linter": "flake8-bandit",
+        "summary": "可能通过 Paramiko 调用进行shell注入；检查输入是否已正确清理",
+        "message_formats": [
+            "可能通过 Paramiko 调用进行shell注入；检查输入是否已正确清理"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在 `paramiko` 调用。\n\n## 问题原因\n`paramiko` 调用允许用户在远程机器上执行任意 shell 命令。如果这些调用的输入未正确清理，可能容易受到 shell 注入攻击。\n\n## 示例\n```python\nimport paramiko\n\nclient = paramiko.SSHClient()\nclient.exec_command(\"echo $HOME\")\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-78](https://cwe.mitre.org/data/definitions/78.html)\n- [Paramiko 文档：`SSHClient.exec_command()`](https://docs.paramiko.org/en/stable/api/client.html#paramiko.client.SSHClient.exec_command)",
+        "preview": false
+    },
+    "S602": {
+        "name": "subprocess-popen-with-shell-equals-true",
+        "linter": "flake8-bandit",
+        "summary": "`subprocess` 调用设置 `shell=True` 看似安全，但未来可能发生变化；考虑不使用 `shell` 重写",
+        "message_formats": [
+            "`subprocess` 调用设置 `shell=True` 看似安全，但未来可能发生变化；考虑不使用 `shell` 重写",
+            "`subprocess` 调用设置 `shell=True`，存在安全问题",
+            "`subprocess` 调用设置真值 `shell` 看似安全，但未来可能发生变化；考虑不使用 `shell` 重写",
+            "`subprocess` 调用设置真值 `shell`，存在安全问题"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在启动带有 shell 的子进程的方法调用。\n\n## 问题原因\n启动带有 shell 的子进程可能允许攻击者执行任意 shell 命令。考虑不使用 shell 调用启动进程，并清理输入以降低 shell 注入的风险。\n\n## 示例\n```python\nimport subprocess\n\nsubprocess.run(\"ls -l\", shell=True)\n```\n\n正确用法：\n```python\nimport subprocess\n\nsubprocess.run([\"ls\", \"-l\"])\n```\n\n## 参考资料\n- [Python 文档：`subprocess` — 子进程管理](https://docs.python.org/3/library/subprocess.html)\n- [常见弱点枚举：CWE-78](https://cwe.mitre.org/data/definitions/78.html)",
+        "preview": false
+    },
+    "S603": {
+        "name": "subprocess-without-shell-equals-true",
+        "linter": "flake8-bandit",
+        "summary": "`subprocess` 调用：检查是否执行未受信任的输入",
+        "message_formats": ["`subprocess` 调用：检查是否执行未受信任的输入"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在启动不带有 shell 的子进程的方法调用。\n\n## 问题原因\n启动不带有 shell 的子进程可以防止攻击者执行任意 shell 命令；然而，这仍然容易出错。考虑验证输入。\n\n## 已知问题\n由于难以确定传递的参数是否已验证，因此容易产生误报（[#4045]）。\n\n## 示例\n```python\nimport subprocess\n\ncmd = input(\"输入命令： \").split()\nsubprocess.run(cmd)\n```\n\n## 参考资料\n- [Python 文档：`subprocess` — 子进程管理](https://docs.python.org/3/library/subprocess.html)\n\n[#4045]: https://github.com/astral-sh/ruff/issues/4045",
+        "preview": false
+    },
+    "S604": {
+        "name": "call-with-shell-equals-true",
+        "linter": "flake8-bandit",
+        "summary": "检测到设置 `shell=True` 参数的函数调用，存在安全问题",
+        "message_formats": [
+            "检测到设置 `shell=True` 参数的函数调用，存在安全问题",
+            "检测到设置真值 `shell` 参数的函数调用，存在安全问题"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在在调用子进程时将 `shell` 参数设置为 `true` 或其他真值的方法调用。\n\n## 问题原因\n在调用子进程时将 `shell` 参数设置为 `true` 或其他真值可能会引入安全漏洞，因为它允许将 shell 元字符和空格传递给子进程，可能导致 shell 注入攻击。\n\n建议避免使用 `shell=True`，除非绝对必要；如果必须使用，请确保所有输入都经过适当的清理和引用，以防止此类漏洞。\n\n## 已知问题\n此规则在任何函数调用中设置 `shell=True` 参数时都会触发，容易产生误报。\n\n## 示例\n```python\nimport subprocess\n\nuser_input = input(\"输入命令： \")\nsubprocess.run(user_input, shell=True)\n```\n\n## 参考资料\n- [Python 文档：安全注意事项](https://docs.python.org/3/library/subprocess.html#security-considerations)",
+        "preview": false
+    },
+    "S605": {
+        "name": "start-process-with-a-shell",
+        "linter": "flake8-bandit",
+        "summary": "使用 shell 启动进程：看似安全，但未来可能发生变化；考虑不使用 `shell` 重写",
+        "message_formats": [
+            "使用 shell 启动进程：看似安全，但未来可能发生变化；考虑不使用 `shell` 重写",
+            "使用 shell 启动进程，检测到可能的注入"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在使用 shell 启动进程的调用，并提供有关用法是否安全的指导。\n\n## 问题原因\n使用 shell 启动进程可能会引入安全风险，例如代码注入漏洞。了解 shell 的使用是否安全非常重要。\n\n此规则会触发 `os.system`、`popen` 等函数，这些函数使用 shell 启动进程。它会评估提供的命令是字符串字面量还是表达式。如果命令是字符串字面量，则认为是安全的。如果命令是表达式，则认为（可能）是不安全的。\n\n## 示例\n```python\nimport os\n\n# 安全用法（字符串字面量）\ncommand = \"ls -l\"\nos.system(command)\n\n# 可能不安全的用法（表达式）\ncmd = get_user_input()\nos.system(cmd)\n```\n\n## 注意\n`subprocess` 模块提供了更强大的功能来生成新进程并获取其结果，与使用 `os.system` 或类似函数相比，更推荐使用该模块。考虑将此类用法替换为 `subprocess.call` 或相关函数。\n\n## 参考资料\n- [Python 文档：`subprocess`](https://docs.python.org/3/library/subprocess.html)",
+        "preview": false
+    },
+    "S606": {
+        "name": "start-process-with-no-shell",
+        "linter": "flake8-bandit",
+        "summary": "不使用 shell 启动进程",
+        "message_formats": ["不使用 shell 启动进程"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在不使用 shell 启动进程的函数。\n\n## 问题原因\n如果将任意变量传递给可执行文件，或者输入未经过清理或验证，则通过函数调用调用任何类型的外部可执行文件都可能带来安全风险。\n\n此规则专门标记 `os` 模块中不使用 shell 生成子进程的函数。请注意，与使用 shell 启动的子进程（由 [`start-process-with-a-shell`][S605]（`S605`）标记）相比，这些函数通常带来的安全风险要小得多。如果您认为这些函数带来的安全风险对于您的用例是可接受的，可以选择启用一个规则而禁用另一个规则。\n\n## 示例\n```python\nimport os\n\n\ndef insecure_function(arbitrary_user_input: str):\n    os.spawnlp(os.P_NOWAIT, \"/bin/mycmd\", \"mycmd\", arbitrary_user_input)\n```\n\n[S605]: https://docs.astral.sh/ruff/rules/start-process-with-a-shell",
+        "preview": false
+    },
+    "S607": {
+        "name": "start-process-with-partial-path",
+        "linter": "flake8-bandit",
+        "summary": "使用部分可执行文件路径启动进程",
+        "message_formats": ["使用部分可执行文件路径启动进程"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在使用部分可执行文件路径启动进程的情况。\n\n## 问题原因\n使用部分可执行文件路径启动进程可能允许攻击者通过调整 `PATH` 环境变量来执行任意可执行文件。考虑使用可执行文件的完整路径。\n\n## 示例\n```python\nimport subprocess\n\nsubprocess.Popen([\"ruff\", \"check\", \"file.py\"])\n```\n\n正确用法：\n```python\nimport subprocess\n\nsubprocess.Popen([\"/usr/bin/ruff\", \"check\", \"file.py\"])\n```\n\n## 参考资料\n- [Python 文档：`subprocess.Popen()`](https://docs.python.org/3/library/subprocess.html#subprocess.Popen)\n- [常见弱点枚举：CWE-426](https://cwe.mitre.org/data/definitions/426.html)",
+        "preview": false
+    },
+    "S608": {
+        "name": "hardcoded-sql-expression",
+        "linter": "flake8-bandit",
+        "summary": "通过基于字符串的查询构造可能存在 SQL 注入漏洞",
+        "message_formats": ["通过基于字符串的查询构造可能存在 SQL 注入漏洞"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在类似 SQL 语句的字符串参与某种形式的字符串构建操作。\n\n## 问题原因\nSQL 注入是 Web 应用程序中常见的攻击向量。应始终避免将用户输入直接插入到 SQL 语句中。相反，推荐使用参数化查询，其中 SQL 语句与其参数分开提供，如 `psycopg3` 和其他数据库驱动程序及 ORM 所支持的那样。\n\n## 示例\n```python\nquery = \"DELETE FROM foo WHERE id = '%s'\" % identifier\n```\n\n## 参考资料\n- [B608: SQL 注入测试](https://bandit.readthedocs.io/en/latest/plugins/b608_hardcoded_sql_expressions.html)\n- [psycopg3: 服务器端绑定](https://www.psycopg.org/psycopg3/docs/basic/from_pg2.html#server-side-binding)",
+        "preview": false
+    },
+    "S609": {
+        "name": "unix-command-wildcard-injection",
+        "linter": "flake8-bandit",
+        "summary": "由于使用 `*`，调用中可能存在通配符注入",
+        "message_formats": ["由于使用 `*`，调用中可能存在通配符注入"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查 `subprocess.Popen()` 调用中是否存在可能的通配符注入。\n\n## 问题原因\n如果通配符匹配到意外文件，通配符注入可能导致意外行为。考虑使用更具体的路径。\n\n## 示例\n```python\nimport subprocess\n\nsubprocess.Popen([\"chmod\", \"777\", \"*.py\"])\n```\n\n正确用法：\n```python\nimport subprocess\n\nsubprocess.Popen([\"chmod\", \"777\", \"main.py\"])\n```\n\n## 参考资料\n- [常见弱点枚举：CWE-78](https://cwe.mitre.org/data/definitions/78.html)",
+        "preview": false
+    },
+    "S610": {
+        "name": "django-extra",
+        "linter": "flake8-bandit",
+        "summary": "使用 Django `extra` 可能导致 SQL 注入漏洞",
+        "message_formats": ["使用 Django `extra` 可能导致 SQL 注入漏洞"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在使用 Django 的 `extra` 函数且传递的一个或多个参数不是字面量表达式的情况。\n\n## 问题原因\nDjango 的 `extra` 函数可用于执行任意 SQL 查询，这进而可能导致 SQL 注入漏洞。\n\n## 示例\n```python\nfrom django.contrib.auth.models import User\n\n# 字符串插值会创建可能被用于 SQL 注入的安全漏洞：\nUser.objects.all().extra(select={\"test\": \"%secure\" % \"nos\"})\n```\n\n正确用法：\n```python\nfrom django.contrib.auth.models import User\n\n# 如果所有参数都是字面量表达式，则无法进行 SQL 注入：\nUser.objects.all().extra(select={\"test\": \"secure\"})\n```\n\n## 参考资料\n- [Django 文档：SQL 注入保护](https://docs.djangoproject.com/en/dev/topics/security/#sql-injection-protection)\n- [常见弱点枚举：CWE-89](https://cwe.mitre.org/data/definitions/89.html)",
+        "preview": false
+    },
+    "S611": {
+        "name": "django-raw-sql",
+        "linter": "flake8-bandit",
+        "summary": "使用 `RawSQL` 可能导致 SQL 注入漏洞",
+        "message_formats": ["使用 `RawSQL` 可能导致 SQL 注入漏洞"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在使用 Django 的 `RawSQL` 函数的情况。\n\n## 问题原因\nDjango 的 `RawSQL` 函数可用于执行任意 SQL 查询，这进而可能导致 SQL 注入漏洞。\n\n## 示例\n```python\nfrom django.db.models.expressions import RawSQL\nfrom django.contrib.auth.models import User\n\nUser.objects.annotate(val=RawSQL(\"%s\" % input_param, []))\n```\n\n## 参考资料\n- [Django 文档：SQL 注入保护](https://docs.djangoproject.com/en/dev/topics/security/#sql-injection-protection)\n- [常见弱点枚举：CWE-89](https://cwe.mitre.org/data/definitions/89.html)",
+        "preview": false
+    },
+    "S612": {
+        "name": "logging-config-insecure-listen",
+        "linter": "flake8-bandit",
+        "summary": "检测到使用不安全的 `logging.config.listen`",
+        "message_formats": ["检测到使用不安全的 `logging.config.listen`"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在不安全的 `logging.config.listen` 调用。\n\n## 问题原因\n`logging.config.listen` 会启动一个服务器，监听日志配置请求。这是不安全的，因为部分配置会传递给内置的 `eval` 函数，该函数可用于执行任意代码。\n\n## 示例\n```python\nimport logging\n\nlogging.config.listen(9999)\n```\n\n## 参考资料\n- [Python 文档：`logging.config.listen()`](https://docs.python.org/3/library/logging.config.html#logging.config.listen)",
+        "preview": false
+    },
+    "S701": {
+        "name": "jinja2-autoescape-false",
+        "linter": "flake8-bandit",
+        "summary": "使用 `autoescape=False` 的 jinja2 模板存在安全风险，可能导致 XSS 攻击。确保 `autoescape=True` 或使用 `select_autoescape` 函数。",
+        "message_formats": [
+            "使用 `autoescape=False` 的 jinja2 模板存在安全风险，可能导致 XSS 攻击。确保 `autoescape=True` 或使用 `select_autoescape` 函数。",
+            "默认情况下，jinja2 将 `autoescape` 设置为 `False`。考虑使用 `autoescape=True` 或 `select_autoescape` 函数来缓解 XSS 漏洞。"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在使用 `autoescape=False` 的 `jinja2` 模板。\n\n## 问题原因\n使用 `autoescape=False` 的 `jinja2` 模板容易受到跨站脚本（XSS）攻击，攻击者可通过该漏洞执行任意 JavaScript。\n\n默认情况下，`jinja2` 将 `autoescape` 设置为 `False`，因此务必设置 `autoescape=True` 或使用 `select_autoescape` 函数来缓解 XSS 漏洞。\n\n## 示例\n```python\nimport jinja2\n\njinja2.Environment(loader=jinja2.FileSystemLoader(\".\"))\n```\n\n正确用法：\n```python\nimport jinja2\n\njinja2.Environment(loader=jinja2.FileSystemLoader(\".\"), autoescape=True)\n```\n\n## 参考资料\n- [Jinja 文档：API](https://jinja.palletsprojects.com/en/latest/api/#autoescaping)\n- [常见弱点枚举：CWE-94](https://cwe.mitre.org/data/definitions/94.html)",
+        "preview": false
+    },
+    "S702": {
+        "name": "mako-templates",
+        "linter": "flake8-bandit",
+        "summary": "Mako 模板默认允许 HTML 和 JavaScript 渲染，本身容易受到 XSS 攻击",
+        "message_formats": [
+            "Mako 模板默认允许 HTML 和 JavaScript 渲染，本身容易受到 XSS 攻击"
+        ],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在使用 `mako` 模板的情况。\n\n## 问题原因\nMako 模板默认允许 HTML 和 JavaScript 渲染，本身容易受到 XSS 攻击。确保所有模板中的变量都通过 `n`、`h` 或 `x` 标志（根据上下文）进行适当的清理。例如，要对变量 `data` 进行 HTML 转义，使用 `${ data |h }`。\n\n## 示例\n```python\nfrom mako.template import Template\n\nTemplate(\"hello\")\n```\n\n正确用法：\n```python\nfrom mako.template import Template\n\nTemplate(\"hello |h\")\n```\n\n## 参考资料\n- [Mako 文档](https://www.makotemplates.org/)\n- [OpenStack 安全：跨站脚本 XSS](https://security.openstack.org/guidelines/dg_cross-site-scripting-xss.html)\n- [常见弱点枚举：CWE-80](https://cwe.mitre.org/data/definitions/80.html)",
+        "preview": false
+    },
+    "BLE001": {
+        "name": "blind-except",
+        "linter": "flake8-blind-except",
+        "summary": "不要捕获无差别异常：`{name}`",
+        "message_formats": ["不要捕获无差别异常：`{name}`"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在捕获所有异常的 `except` 子句。这包括无参数 `except`、`except BaseException` 和 `except Exception`。\n\n\n## 问题原因\n过于宽泛的 `except` 子句可能导致意外行为，例如捕获 `KeyboardInterrupt` 或 `SystemExit` 异常，阻止用户退出程序。\n\n与其捕获所有异常，不如只捕获 `try` 块中预期会抛出的异常。\n\n## 示例\n```python\ntry:\n    foo()\nexcept BaseException:\n    ...\n```\n\n正确用法：\n```python\ntry:\n    foo()\nexcept FileNotFoundError:\n    ...\n```\n\n重新抛出的异常不会被标记，因为它们预计会在其他地方被捕获：\n```python\ntry:\n    foo()\nexcept BaseException:\n    raise\n```\n\n通过 `logging.exception()` 或启用 `exc_info` 的 `logging.error()` 记录的异常不会被标记，因为这是传播异常跟踪的常见模式：\n```python\ntry:\n    foo()\nexcept BaseException:\n    logging.exception(\"出现错误\")\n```\n\n## 参考资料\n- [Python 文档：`try` 语句](https://docs.python.org/3/reference/compound_stmts.html#the-try-statement)\n- [Python 文档：异常层次结构](https://docs.python.org/3/library/exceptions.html#exception-hierarchy)\n- [PEP 8: 编程建议中的无参数 `except`](https://peps.python.org/pep-0008/#programming-recommendations)",
+        "preview": false
+    },
+    "FBT001": {
+        "name": "boolean-type-hint-positional-argument",
+        "linter": "flake8-boolean-trap",
+        "summary": "函数定义中存在布尔类型提示的位置参数",
+        "message_formats": ["函数定义中存在布尔类型提示的位置参数"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查函数定义中是否存在使用布尔类型提示的布尔位置参数。\n\n## 问题原因\n使用布尔位置参数调用函数容易造成混淆，因为布尔值的含义对于调用者和未来的代码阅读者来说并不明确。\n\n使用布尔值还会将函数限制为仅两种可能的行为，这使得函数在未来难以扩展。\n\n相反，考虑将 `True` 和 `False` 情况重构为单独的实现、使用 `Enum`，或使参数成为仅限关键字参数，以强制调用者在提供参数时明确说明其含义。\n\n定义运算符的特殊方法、设置器和 `@override` 定义不受此规则限制。\n\n在 [预览模式] 下，此规则还会标记包含布尔变体的注解，如 `bool | int`。\n\n## 示例\n\n```python\nfrom math import ceil, floor\n\n\ndef round_number(number: float, up: bool) -> int:\n    return ceil(number) if up else floor(number)\n\n\nround_number(1.5, True)  # `True` 是什么意思？\nround_number(1.5, False)  # `False` 是什么意思？\n```\n\n相反，重构为单独的实现：\n\n```python\nfrom math import ceil, floor\n\n\ndef round_up(number: float) -> int:\n    return ceil(number)\n\n\ndef round_down(number: float) -> int:\n    return floor(number)\n\n\nround_up(1.5)\nround_down(1.5)\n```\n\n或者，重构为使用 `Enum`：\n\n```python\nfrom enum import Enum\n\n\nclass RoundingMethod(Enum):\n    UP = 1\n    DOWN = 2\n\n\ndef round_number(value: float, method: RoundingMethod) -> float: ...\n```\n\n或者，使参数成为仅限关键字参数：\n\n```python\nfrom math import ceil, floor\n\n\ndef round_number(number: float, *, up: bool) -> int:\n    return ceil(number) if up else floor(number)\n\n\nround_number(1.5, up=True)\nround_number(1.5, up=False)\n```\n\n## 参考资料\n- [Python 文档：调用](https://docs.python.org/3/reference/expressions.html#calls)\n- [亚当·约翰逊的《如何避免“布尔陷阱”》](https://adamj.eu/tech/2021/07/10/python-type-hints-how-to-avoid-the-boolean-trap/)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "FBT002": {
+        "name": "boolean-default-value-positional-argument",
+        "linter": "flake8-boolean-trap",
+        "summary": "函数定义中存在布尔默认值的位置参数",
+        "message_formats": ["函数定义中存在布尔默认值的位置参数"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查函数定义中是否存在使用布尔默认值的布尔位置参数。\n\n## 问题原因\n使用布尔位置参数调用函数容易造成混淆，因为布尔值的含义对于调用者和未来的代码阅读者来说并不明确。\n\n使用布尔值还会将函数限制为仅两种可能的行为，这使得函数在未来难以扩展。\n\n相反，考虑将 `True` 和 `False` 情况重构为单独的实现、使用 `Enum`，或使参数成为仅限关键字参数，以强制调用者在提供参数时明确说明其含义。\n\n## 示例\n```python\nfrom math import ceil, floor\n\n\ndef round_number(number, up=True):\n    return ceil(number) if up else floor(number)\n\n\nround_number(1.5, True)  # `True` 是什么意思？\nround_number(1.5, False)  # `False` 是什么意思？\n```\n\n相反，重构为单独的实现：\n```python\nfrom math import ceil, floor\n\n\ndef round_up(number):\n    return ceil(number)\n\n\ndef round_down(number):\n    return floor(number)\n\n\nround_up(1.5)\nround_down(1.5)\n```\n\n或者，重构为使用 `Enum`：\n```python\nfrom enum import Enum\n\n\nclass RoundingMethod(Enum):\n    UP = 1\n    DOWN = 2\n\n\ndef round_number(value, method):\n    return ceil(number) if method is RoundingMethod.UP else floor(number)\n\n\nround_number(1.5, RoundingMethod.UP)\nround_number(1.5, RoundingMethod.DOWN)\n```\n\n或者，使参数成为仅限关键字参数：\n```python\nfrom math import ceil, floor\n\n\ndef round_number(number, *, up=True):\n    return ceil(number) if up else floor(number)\n\n\nround_number(1.5, up=True)\nround_number(1.5, up=False)\n```\n\n## 参考资料\n- [Python 文档：调用](https://docs.python.org/3/reference/expressions.html#calls)\n- [亚当·约翰逊的《如何避免“布尔陷阱”》](https://adamj.eu/tech/2021/07/10/python-type-hints-how-to-avoid-the-boolean-trap/)",
+        "preview": false
+    },
+    "FBT003": {
+        "name": "boolean-type-hint-keyword-only-argument",
+        "linter": "flake8-boolean-trap",
+        "summary": "函数定义中存在布尔类型提示的仅限关键字参数",
+        "message_formats": ["函数定义中存在布尔类型提示的仅限关键字参数"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查函数定义中是否存在使用布尔类型提示的布尔仅限关键字参数。\n\n## 问题原因\n虽然仅限关键字参数比位置参数更清晰（因为调用者必须明确参数名），但布尔值仍然会将函数限制为仅两种可能的行为，这使得函数在未来难以扩展。\n\n相反，考虑将 `True` 和 `False` 情况重构为单独的实现，或使用 `Enum` 来支持更多行为变体。\n\n定义运算符的特殊方法、设置器和 `@override` 定义不受此规则限制。\n\n在 [预览模式] 下，此规则还会标记包含布尔变体的注解，如 `bool | None`。\n\n## 示例\n```python\nfrom math import ceil, floor\n\n\ndef round_number(number: float, *, up: bool) -> int:\n    return ceil(number) if up else floor(number)\n\n\nround_number(1.5, up=True)\nround_number(1.5, up=False)\n```\n\n相反，重构为单独的实现：\n```python\nfrom math import ceil, floor\n\n\ndef round_up(number: float) -> int:\n    return ceil(number)\n\n\ndef round_down(number: float) -> int:\n    return floor(number)\n\n\nround_up(1.5)\nround_down(1.5)\n```\n\n或者，重构为使用 `Enum`：\n```python\nfrom enum import Enum\n\n\nclass RoundingMethod(Enum):\n    UP = 1\n    DOWN = 2\n    HALF_UP = 3\n\n\ndef round_number(value: float, method: RoundingMethod) -> float:\n    match method:\n        case RoundingMethod.UP:\n            return ceil(value)\n        case RoundingMethod.DOWN:\n            return floor(value)\n        case RoundingMethod.HALF_UP:\n            return int(value + 0.5)\n\n\nround_number(1.5, RoundingMethod.UP)\nround_number(1.5, RoundingMethod.HALF_UP)\n```\n\n## 参考资料\n- [Python 文档：函数定义](https://docs.python.org/3/reference/compound_stmts.html#function-definitions)\n- [亚当·约翰逊的《如何避免“布尔陷阱”》](https://adamj.eu/tech/2021/07/10/python-type-hints-how-to-avoid-the-boolean-trap/)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/",
+        "preview": false
+    },
+    "FBT004": {
+        "name": "boolean-default-value-keyword-only-argument",
+        "linter": "flake8-boolean-trap",
+        "summary": "函数定义中存在布尔默认值的仅限关键字参数",
+        "message_formats": ["函数定义中存在布尔默认值的仅限关键字参数"],
+        "fix": "无可用修复方案。",
+        "explanation": "## 功能说明\n检查函数定义中是否存在使用布尔默认值的布尔仅限关键字参数。\n\n## 问题原因\n虽然仅限关键字参数比位置参数更清晰，但布尔默认值仍然会将函数限制为仅两种可能的行为，且可能导致调用者忽略参数的实际含义。\n\n相反，考虑将 `True` 和 `False` 情况重构为单独的实现，或使用 `Enum` 来支持更多行为变体。如果必须保留布尔参数，确保参数名能明确表达其用途（如 `enable_logging` 而非 `flag`）。\n\n## 示例\n```python\nfrom math import ceil, floor\n\n\ndef round_number(number: float, *, up: bool = True) -> int:\n    return ceil(number) if up else floor(number)\n\n\nround_number(1.5)  # 隐式使用 up=True，含义不直观\n```\n\n相反，重构为单独的实现（推荐）：\n```python\nfrom math import ceil, floor\n\n\ndef round_up(number: float) -> int:\n    return ceil(number)\n\n\ndef round_down(number: float) -> int:\n    return floor(number)\n\n\nround_up(1.5)\nround_down(1.5)\n```\n\n或者，使用明确命名的参数并保留布尔逻辑：\n```python\nfrom math import ceil, floor\n\n\ndef round_number(number: float, *, round_towards_positive: bool = True) -> int:\n    return ceil(number) if round_towards_positive else floor(number)\n\n\nround_number(1.5)  # 参数名明确表达行为\nround_number(1.5, round_towards_positive=False)\n```\n\n## 参考资料\n- [Python 文档：函数参数](https://docs.python.org/3/tutorial/controlflow.html#keyword-arguments)\n- [亚当·约翰逊的《如何避免“布尔陷阱”》](https://adamj.eu/tech/2021/07/10/python-type-hints-how-to-avoid-the-boolean-trap/)",
+        "preview": false
+    },
+    "FURB101": {
+        "name": "unnecessary-dict-comprehension",
+        "linter": "flake8-future-annotations",
+        "summary": "不必要的字典推导式，可简化为 `dict()` 调用",
+        "message_formats": ["不必要的字典推导式，可简化为 `dict()` 调用"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可简化为 `dict()` 直接调用的字典推导式。\n\n## 问题原因\n当字典推导式仅用于将键值对序列转换为字典时，使用 `dict()` 调用更简洁、可读性更高，且性能更优。\n\n## 示例\n```python\n{x: y for x, y in iterable}\n```\n\n正确用法：\n```python\ndict(iterable)\n```\n\n## 例外情况\n如果推导式包含条件判断（如 `{x: y for x, y in iterable if x > 0}`）或对键/值进行转换（如 `{x+1: y*2 for x, y in iterable}`），则不属于不必要的推导式，不会被标记。",
+        "preview": false
+    },
+    "FURB102": {
+        "name": "unnecessary-list-comprehension",
+        "linter": "flake8-future-annotations",
+        "summary": "不必要的列表推导式，可简化为 `list()` 调用",
+        "message_formats": ["不必要的列表推导式，可简化为 `list()` 调用"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可简化为 `list()` 直接调用的列表推导式。\n\n## 问题原因\n当列表推导式仅用于将可迭代对象转换为列表时，使用 `list()` 调用更简洁、可读性更高。\n\n## 示例\n```python\n[x for x in iterable]\n```\n\n正确用法：\n```python\nlist(iterable)\n```\n\n## 例外情况\n如果推导式包含条件判断（如 `[x for x in iterable if x > 0]`）或对元素进行转换（如 `[x*2 for x in iterable]`），则不属于不必要的推导式，不会被标记。",
+        "preview": false
+    },
+    "FURB103": {
+        "name": "unnecessary-set-comprehension",
+        "linter": "flake8-future-annotations",
+        "summary": "不必要的集合推导式，可简化为 `set()` 调用",
+        "message_formats": ["不必要的集合推导式，可简化为 `set()` 调用"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可简化为 `set()` 直接调用的集合推导式。\n\n## 问题原因\n当集合推导式仅用于将可迭代对象转换为集合时，使用 `set()` 调用更简洁、可读性更高。\n\n## 示例\n```python\n{x for x in iterable}\n```\n\n正确用法：\n```python\nset(iterable)\n```\n\n## 例外情况\n如果推导式包含条件判断（如 `{x for x in iterable if x > 0}`）或对元素进行转换（如 `{x*2 for x in iterable}`），则不属于不必要的推导式，不会被标记。",
+        "preview": false
+    },
+    "FURB104": {
+        "name": "unnecessary-generator-expression",
+        "linter": "flake8-future-annotations",
+        "summary": "不必要的生成器表达式，可简化为直接迭代",
+        "message_formats": ["不必要的生成器表达式，可简化为直接迭代"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可简化为直接迭代的生成器表达式。\n\n## 问题原因\n当生成器表达式仅用于传递可迭代对象（无额外逻辑）时，直接使用原可迭代对象更简洁、可读性更高。\n\n## 示例\n```python\nsome_function(x for x in iterable)\n```\n\n正确用法：\n```python\nsome_function(iterable)\n```\n\n## 例外情况\n如果生成器表达式包含条件判断（如 `some_function(x for x in iterable if x > 0)`）或对元素进行转换（如 `some_function(x*2 for x in iterable)`），则不属于不必要的表达式，不会被标记。",
+        "preview": false
+    },
+    "FURB105": {
+        "name": "unnecessary-lambda",
+        "linter": "flake8-future-annotations",
+        "summary": "不必要的 lambda 函数，可直接使用目标函数",
+        "message_formats": ["不必要的 lambda 函数，可直接使用目标函数"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在仅用于包装另一个函数调用的不必要 lambda 函数。\n\n## 问题原因\n当 lambda 函数仅传递参数并调用另一个函数时，直接使用该函数本身更简洁、可读性更高，且避免不必要的函数嵌套。\n\n## 示例\n```python\nlist(map(lambda x: len(x), iterable))\n\n# 或\n\ndef func(x):\n    return lambda y: some_function(x, y)\n```\n\n正确用法：\n```python\nlist(map(len, iterable))\n\n# 或\n\ndef func(x):\n    return some_function  # 或使用 functools.partial 绑定参数\n```\n\n## 例外情况\n如果 lambda 函数包含额外逻辑（如 `lambda x: len(x) + 1`）或参数转换（如 `lambda x: some_function(x*2)`），则不属于不必要的 lambda，不会被标记。",
+        "preview": false
+    },
+    "FURB106": {
+        "name": "unnecessary-map",
+        "linter": "flake8-future-annotations",
+        "summary": "不必要的 map 调用，可简化为列表推导式或直接迭代",
+        "message_formats": ["不必要的 map 调用，可简化为列表推导式或直接迭代"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可简化为列表推导式或直接迭代的 map 调用（尤其是结合 lambda 函数时）。\n\n## 问题原因\n与 map + lambda 相比，列表推导式的可读性更高，且支持条件判断等更灵活的逻辑。对于简单的函数调用（如 `map(len, iterable)`），虽然语法简洁，但在某些场景下（如需要后续修改逻辑），列表推导式更易扩展。\n\n## 示例\n```python\nlist(map(lambda x: x*2, iterable))\n```\n\n正确用法：\n```python\n[x*2 for x in iterable]\n```\n\n## 例外情况\n如果 map 调用使用内置函数且无需额外逻辑（如 `map(len, iterable)`），且团队代码规范允许，则可能不被标记为不必要。具体行为可通过配置调整。",
+        "preview": false
+    },
+    "FURB107": {
+        "name": "unnecessary-filter",
+        "linter": "flake8-future-annotations",
+        "summary": "不必要的 filter 调用，可简化为列表推导式",
+        "message_formats": ["不必要的 filter 调用，可简化为列表推导式"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可简化为列表推导式的 filter 调用（尤其是结合 lambda 函数时）。\n\n## 问题原因\n与 filter + lambda 相比，列表推导式的可读性更高，且支持同时进行过滤和转换逻辑，无需嵌套多个函数调用。\n\n## 示例\n```python\nlist(filter(lambda x: x > 0, iterable))\n```\n\n正确用法：\n```python\n[x for x in iterable if x > 0]\n```\n\n## 例外情况\n如果 filter 调用使用内置函数且逻辑简单（如 `filter(None, iterable)`），且团队代码规范允许，则可能不被标记为不必要。具体行为可通过配置调整。",
+        "preview": false
+    },
+    "FURB108": {
+        "name": "unnecessary-zip",
+        "linter": "flake8-future-annotations",
+        "summary": "不必要的 zip 调用，可直接使用解包",
+        "message_formats": ["不必要的 zip 调用，可直接使用解包"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可通过解包替代的不必要 zip 调用。\n\n## 问题原因\n当 zip 调用仅用于将多个可迭代对象打包后立即解包时，直接使用原可迭代对象解包更简洁、高效。\n\n## 示例\n```python\nfor x, y in zip(list1, list2):\n    some_function(x, y)\n\n# 或\n\ndict(zip(keys, values))  # 若 keys 和 values 已是可直接用于 dict 的序列\n```\n\n正确用法：\n```python\n# 仅当 list1 和 list2 长度一致且无需 zip 的其他特性时\nfor x, y in zip(list1, list2):  # 此场景可能无需修改，具体取决于使用场景\n    some_function(x, y)\n\n# 若为 dict 构造，且 keys/values 适合直接传递\n# 实际更常见的是 zip 必要的场景，此规则主要针对冗余嵌套\n\n# 典型冗余示例（嵌套 zip 后立即解包）\nfor a, b in zip(*zip(list1, list2)):\n    ...\n\n正确用法：\nfor a, b in zip(list1, list2):\n    ...\n```\n\n## 说明\n此规则主要针对“zip 后立即解包”的冗余场景，正常的 zip 打包迭代不属于不必要的调用，不会被标记。",
+        "preview": false
+    },
+    "FURB109": {
+        "name": "unnecessary-enumerate",
+        "linter": "flake8-future-annotations",
+        "summary": "不必要的 enumerate 调用，未使用索引",
+        "message_formats": ["不必要的 enumerate 调用，未使用索引"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在调用 enumerate 但未使用其返回的索引的情况。\n\n## 问题原因\nenumerate 的核心作用是为可迭代对象添加索引，如果未使用索引，则直接迭代原可迭代对象更简洁、可读性更高，且避免不必要的性能开销。\n\n## 示例\n```python\nfor _, value in enumerate(iterable):\n    some_function(value)\n```\n\n正确用法：\n```python\nfor value in iterable:\n    some_function(value)\n```\n\n## 例外情况\n如果 enumerate 用于设置 start 参数（如 `enumerate(iterable, start=1)`）且确实需要该行为（即使未使用索引），则可能不被标记。具体行为可通过配置调整。",
+        "preview": false
+    },
+    "FURB110": {
+        "name": "unnecessary-slicing",
+        "linter": "flake8-future-annotations",
+        "summary": "不必要的切片操作，可直接使用原序列",
+        "message_formats": ["不必要的切片操作，可直接使用原序列"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可简化为直接使用原序列的不必要切片操作（如 `seq[:]`、`seq[::1]`）。\n\n## 问题原因\n当切片操作未改变序列（如未指定起始/结束索引、步长为 1）时，直接使用原序列更简洁、高效，避免不必要的复制。\n\n## 示例\n```python\nnew_list = old_list[:]\n\n# 或\n\ndef func(seq):\n    return seq[::1]\n```\n\n正确用法：\n```python\nnew_list = old_list  # 若无需复制，直接引用\n# 或\nnew_list = list(old_list)  # 若需要显式复制，使用 list() 更清晰\n\n# 或\ndef func(seq):\n    return seq\n```\n\n## 例外情况\n如果切片用于创建序列的副本（如在 Python 2 中 `old_list[:]` 是常见复制方式），但在 Python 3 中更推荐使用 `list(old_list)` 等显式方式，因此仍会被标记为不必要。",
+        "preview": false
+    },
+    "FURB113": {
+        "name": "repeated-append",
+        "linter": "refurb",
+        "summary": "使用 `{suggestion}` 替代重复调用 `{name}.append()`",
+        "message_formats": [
+            "使用 `{suggestion}` 替代重复调用 `{name}.append()`"
+        ],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在连续的 `append` 调用。\n\n## 为何不推荐\n连续调用 `append` 不如将元素批量通过 `extend` 方法添加高效。每次 `append` 都会单独调整列表大小，而 `extend` 可一次性为所有元素调整列表大小。\n\n## 已知问题\n由于类型推断限制，此规则可能存在漏报情况，仅能检测以字面量形式实例化或带有类型注解的列表。\n\n## 示例\n```python\nnums = [1, 2, 3]\n\nnums.append(4)\nnums.append(5)\nnums.append(6)\n```\n\n推荐用法：\n```python\nnums = [1, 2, 3]\n\nnums.extend((4, 5, 6))\n```\n\n## 参考资料\n- [Python 文档：列表进阶用法](https://docs.python.org/3/tutorial/datastructures.html#more-on-lists)\n",
+        "preview": true
+    },
+    "FURB116": {
+        "name": "f-string-number-format",
+        "linter": "refurb",
+        "summary": "用 `{display}` 替代 `{function_name}` 调用",
+        "message_formats": [
+            "用 `{display}` 替代 `{function_name}` 调用",
+            "用 f-string 替代 `{function_name}` 调用"
+        ],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `bin(...)[2:]`（或 `hex`、`oct`）将整数转换为字符串。\n\n## 为何不推荐\n将整数转换为无基数标识的二进制、十六进制或八进制字符串时，使用 f-string 比 `bin`、`hex` 或 `oct` 函数加切片的方式更简洁易读。\n\n## 示例\n```python\nprint(bin(1337)[2:])\n```\n\n推荐用法：\n```python\nprint(f\"{1337:b}\")\n```\n",
+        "preview": true
+    },
+    "FURB118": {
+        "name": "reimplemented-operator",
+        "linter": "refurb",
+        "summary": "使用 `operator.{operator}` 替代自定义的 {target}",
+        "message_formats": ["使用 `operator.{operator}` 替代自定义的 {target}"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可被 `operator` 模块中的函数替代的 lambda 表达式和函数定义。\n\n## 为何不推荐\n`operator` 模块提供了与对应运算符功能相同的函数。例如，`operator.add` 通常等价于 `lambda x, y: x + y`。使用 `operator` 模块的函数更简洁，且能更清晰地传达代码意图。\n\n## 示例\n```python\nimport functools\n\nnums = [1, 2, 3]\ntotal = functools.reduce(lambda x, y: x + y, nums)\n```\n\n推荐用法：\n```python\nimport functools\nimport operator\n\nnums = [1, 2, 3]\ntotal = functools.reduce(operator.add, nums)\n```\n\n## 修复安全性\n此规则提供的修复方案始终标记为不安全。尽管修复所做的更改很少会破坏代码，但 `operator` 模块的函数与用户自定义函数存在两点差异。Ruff 难以检测这些差异在特定场景下是否会产生影响。\n\n第一点差异是 `operator` 函数不支持关键字参数调用，而大多数用户自定义函数支持。如果 `add` 函数定义为 `add = lambda x, y: x + y`，将其替换为 `operator.add` 后，若后续以关键字参数形式调用（如 `add(x=1, y=2)`），会抛出 `TypeError` 异常。\n\n第二点差异是用户自定义函数是 [描述符]，但 `operator` 模块中定义的函数并非如此。实际应用中，在类体中定义函数（通过 `def` 语句或为变量赋值 lambda 函数）是定义类实例方法的有效方式；在类创建后，将用户自定义函数猴子补丁到类上也能达到同样效果。但 `operator` 函数不具备此特性：在类体中为变量赋值 `operator` 函数或在类创建后将其猴子补丁到类上，都无法创建有效的实例方法。Ruff 不会对类体中的函数定义触发此规则诊断；但目前其类型推断功能尚不够完善，若用户自定义函数在类创建后被猴子补丁到类上，仍可能触发诊断。\n\n[描述符]: https://docs.python.org/3/howto/descriptor.html\n",
+        "preview": true
+    },
+    "FURB122": {
+        "name": "for-loop-writes",
+        "linter": "refurb",
+        "summary": "for 循环中使用 `{}.write` 方法",
+        "message_formats": ["for 循环中使用 `{}.write` 方法"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否在 for 循环中使用 `IOBase.write` 方法。\n\n## 为何不推荐\n批量写入多个元素时，使用单次 `IOBase.writelines` 方法调用比逐行写入更符合 Python 惯用写法。\n\n## 示例\n```python\nwith Path(\"file\").open(\"w\") as f:\n    for line in lines:\n        f.write(line)\n\nwith Path(\"file\").open(\"wb\") as f:\n    for line in lines:\n        f.write(line.encode())\n```\n\n推荐用法：\n```python\nwith Path(\"file\").open(\"w\") as f:\n    f.writelines(lines)\n\nwith Path(\"file\").open(\"wb\") as f:\n    f.writelines(line.encode() for line in lines)\n```\n\n## 参考资料\n- [Python 文档：`io.IOBase.writelines`](https://docs.python.org/3/library/io.html#io.IOBase.writelines)\n",
+        "preview": true
+    },
+    "FURB129": {
+        "name": "readlines-in-for",
+        "linter": "refurb",
+        "summary": "无需调用 `readlines()`，直接迭代文件对象即可",
+        "message_formats": ["无需调用 `readlines()`，直接迭代文件对象即可"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否在逐行迭代文件时使用 `readlines()` 方法。\n\n## 为何不推荐\n逐行迭代文件时，直接迭代文件对象比调用 `readlines()` 更便捷高效。\n\n## 示例\n```python\nwith open(\"file.txt\") as fp:\n    for line in fp.readlines():\n        ...\n```\n\n推荐用法：\n```python\nwith open(\"file.txt\") as fp:\n    for line in fp:\n        ...\n```\n\n## 参考资料\n- [Python 文档：`io.IOBase.readlines`](https://docs.python.org/3/library/io.html#io.IOBase.readlines)\n",
+        "preview": false
+    },
+    "FURB131": {
+        "name": "delete-full-slice",
+        "linter": "refurb",
+        "summary": "优先使用 `clear` 方法，而非删除完整切片",
+        "message_formats": ["优先使用 `clear` 方法，而非删除完整切片"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在通过 `del` 语句删除列表或字典完整切片的情况。\n\n## 为何不推荐\n通过 `clear()` 方法删除所有元素更快捷简洁。\n\n## 已知问题\n由于类型推断限制，此规则可能存在漏报情况，仅能检测以字面量形式实例化或带有类型注解的列表和字典。\n\n## 示例\n```python\nnames = {\"key\": \"value\"}\nnums = [1, 2, 3]\n\ndel names[:]\ndel nums[:]\n```\n\n推荐用法：\n```python\nnames = {\"key\": \"value\"}\nnums = [1, 2, 3]\n\nnames.clear()\nnums.clear()\n```\n\n## 参考资料\n- [Python 文档：可变序列类型](https://docs.python.org/3/library/stdtypes.html?highlight=list#mutable-sequence-types)\n- [Python 文档：`dict.clear()`](https://docs.python.org/3/library/stdtypes.html?highlight=list#dict.clear)\n",
+        "preview": true
+    },
+    "FURB132": {
+        "name": "check-and-remove-from-set",
+        "linter": "refurb",
+        "summary": "用 `{suggestion}` 替代先检查再 `remove` 的操作",
+        "message_formats": ["用 `{suggestion}` 替代先检查再 `remove` 的操作"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可被 `set.discard` 替代的 `set.remove` 用法。\n\n## 为何不推荐\n若需从集合中移除某个可能存在的元素，使用 `discard` 方法更简洁符合 Python 惯用写法。\n\n## 已知问题\n由于类型推断限制，此规则可能存在漏报情况，仅能检测以字面量形式实例化或带有类型注解的集合。\n\n## 示例\n```python\nnums = {123, 456}\n\nif 123 in nums:\n    nums.remove(123)\n```\n\n推荐用法：\n```python\nnums = {123, 456}\n\nnums.discard(123)\n```\n\n## 参考资料\n- [Python 文档：`set.discard()`](https://docs.python.org/3/library/stdtypes.html?highlight=list#frozenset.discard)\n",
+        "preview": true
+    },
+    "FURB136": {
+        "name": "if-expr-min-max",
+        "linter": "refurb",
+        "summary": "用 `{min_max}` 调用替代 `if` 表达式",
+        "message_formats": [
+            "用 `{min_max}` 调用替代 `if` 表达式",
+            "用 `{replacement}` 替代 `if` 表达式",
+            "用 `{replacement}` 替代 `{expression}`"
+        ],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可被 `min()` 或 `max()` 调用替代的 `if` 表达式。\n\n## 为何不推荐\n若 `if` 表达式用于从两个子表达式中选择较小值或较大值，可分别用 `min()` 或 `max()` 调用替代。在可行情况下，优先使用 `min()` 和 `max()`，它们比等效的 `if` 表达式更简洁易读。\n\n## 示例\n```python\nhighest_score = score1 if score1 > score2 else score2\n```\n\n推荐用法：\n```python\nhighest_score = max(score2, score1)\n```\n\n## 参考资料\n- [Python 文档：`min`](https://docs.python.org/3.11/library/functions.html#min)\n- [Python 文档：`max`](https://docs.python.org/3.11/library/functions.html#max)\n",
+        "preview": false
+    },
+    "FURB140": {
+        "name": "reimplemented-starmap",
+        "linter": "refurb",
+        "summary": "用 `itertools.starmap` 替代生成器",
+        "message_formats": ["用 `itertools.starmap` 替代生成器"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可被 `itertools.starmap` 替代的生成器表达式、列表推导式和集合推导式。\n\n## 为何不推荐\n从迭代器中解包值并直接传递给函数时，优先使用 `itertools.starmap`。\n\n`itertools.starmap` 更简洁易读，且比生成器表达式效率更高，在部分 Python 版本中，其效率也高于推导式。\n\n## 已知问题\n自 Python 3.12 起，`itertools.starmap` 效率低于推导式（[#7771]）。这是由于 [PEP 709] 优化了推导式性能。\n\n## 示例\n```python\nall(predicate(a, b) for a, b in some_iterable)\n```\n\n推荐用法：\n```python\nfrom itertools import starmap\n\n\nall(starmap(predicate, some_iterable))\n```\n\n## 参考资料\n- [Python 文档：`itertools.starmap`](https://docs.python.org/3/library/itertools.html#itertools.starmap)\n\n[PEP 709]: https://peps.python.org/pep-0709/\n[#7771]: https://github.com/astral-sh/ruff/issues/7771\n",
+        "preview": true
+    },
+    "FURB142": {
+        "name": "for-loop-set-mutations",
+        "linter": "refurb",
+        "summary": "for 循环中使用 `set.{}()` 方法",
+        "message_formats": ["for 循环中使用 `set.{}()` 方法"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在通过 for 循环逐个调用 `.add()` 或 `.discard()` 方法，向集合中添加或移除一批元素的代码。\n\n## 为何不推荐\n向集合中批量添加或移除元素时，使用单次方法调用比逐个元素操作更符合 Python 惯用写法。\n\n## 示例\n```python\ns = set()\n\nfor x in (1, 2, 3):\n    s.add(x)\n\nfor x in (1, 2, 3):\n    s.discard(x)\n```\n\n推荐用法：\n```python\ns = set()\n\ns.update((1, 2, 3))\ns.difference_update((1, 2, 3))\n```\n\n## 修复安全性\n若修复会删除任何注释，则标记为不安全；否则标记为安全。\n\n## 参考资料\n- [Python 文档：`set`](https://docs.python.org/3/library/stdtypes.html#set)\n",
+        "preview": true
+    },
+    "FURB145": {
+        "name": "slice-copy",
+        "linter": "refurb",
+        "summary": "优先使用 `copy` 方法，而非切片",
+        "message_formats": ["优先使用 `copy` 方法，而非切片"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否通过无界切片表达式复制列表。\n\n## 为何不推荐\n`list.copy` 方法更易读，且与其他类型的复制方式保持一致。\n\n## 已知问题\n由于类型推断限制，此规则可能存在漏报情况，仅能检测以字面量形式实例化或带有类型注解的列表。\n\n## 示例\n```python\na = [1, 2, 3]\nb = a[:]\n```\n\n推荐用法：\n```python\na = [1, 2, 3]\nb = a.copy()\n```\n\n## 参考资料\n- [Python 文档：可变序列类型](https://docs.python.org/3/library/stdtypes.html#mutable-sequence-types)\n",
+        "preview": true
+    },
+    "FURB148": {
+        "name": "unnecessary-enumerate",
+        "linter": "refurb",
+        "summary": "`enumerate` 的值未使用，改用 `for x in range(len(y))` 迭代",
+        "message_formats": [
+            "`enumerate` 的值未使用，改用 `for x in range(len(y))` 迭代",
+            "`enumerate` 的索引未使用，改用 `for x in y` 迭代"
+        ],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在迭代序列时，丢弃 `enumerate` 返回的索引或值的情况。\n\n## 为何不推荐\n内置 `enumerate` 函数适用于同时需要序列索引和值的场景。\n\n若仅需要序列的索引或值，应分别迭代 `range(len(...))` 或序列本身。这种方式更高效，且能更清晰地传达代码意图。\n\n## 已知问题\n由于类型推断限制，此规则可能存在漏报情况；仅当传递给 `enumerate` 的序列是以列表、集合、字典或元组字面量形式实例化，或带有相应类型注解时，才会建议使用 `len` 内置函数进行修复。\n\n`len` 内置函数并非对所有对象类型都适用（如生成器），因此将 `enumerate` 重构为 `len` 并不总是安全的。\n\n## 示例\n```python\nfor index, _ in enumerate(sequence):\n    print(index)\n\nfor _, value in enumerate(sequence):\n    print(value)\n```\n\n推荐用法：\n```python\nfor index in range(len(sequence)):\n    print(index)\n\nfor value in sequence:\n    print(value)\n```\n\n## 参考资料\n- [Python 文档：`enumerate`](https://docs.python.org/3/library/functions.html#enumerate)\n- [Python 文档：`range`](https://docs.python.org/3/library/stdtypes.html#range)\n- [Python 文档：`len`](https://docs.python.org/3/library/functions.html#len)\n",
+        "preview": true
+    },
+    "FURB152": {
+        "name": "math-constant",
+        "linter": "refurb",
+        "summary": "用 `math.{constant}` 替代 `{literal}`",
+        "message_formats": ["用 `math.{constant}` 替代 `{literal}`"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在与 `math` 模块中常量相似的字面量。\n\n## 为何不推荐\n硬编码 π 等数学常量会增加代码冗余，降低可读性，且可能缺乏精度。\n\n## 示例\n```python\nA = 3.141592 * r**2\n```\n\n推荐用法：\n```python\nA = math.pi * r**2\n```\n\n## 参考资料\n- [Python 文档：`math` 模块常量](https://docs.python.org/3/library/math.html#constants)\n",
+        "preview": true
+    },
+    "FURB154": {
+        "name": "repeated-global",
+        "linter": "refurb",
+        "summary": "连续重复使用 `{}` 语句",
+        "message_formats": ["连续重复使用 `{}` 语句"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在连续的 `global`（或 `nonlocal`）语句。\n\n## 为何不推荐\n`global` 和 `nonlocal` 关键字支持多个以逗号分隔的名称。无需为不同变量使用多个 `global`（或 `nonlocal`）语句，可通过单个语句一次性声明多个变量。\n\n## 示例\n```python\ndef func():\n    global x\n    global y\n\n    print(x, y)\n```\n\n推荐用法：\n```python\ndef func():\n    global x, y\n\n    print(x, y)\n```\n\n## 参考资料\n- [Python 文档：`global` 语句](https://docs.python.org/3/reference/simple_stmts.html#the-global-statement)\n- [Python 文档：`nonlocal` 语句](https://docs.python.org/3/reference/simple_stmts.html#the-nonlocal-statement)\n",
+        "preview": true
+    },
+    "FURB156": {
+        "name": "hardcoded-string-charset",
+        "linter": "refurb",
+        "summary": "使用硬编码字符串字符集",
+        "message_formats": ["使用硬编码字符串字符集"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用硬编码字符集，这些字符集在 Python 的 string 模块中已有定义。\n\n## 为何不推荐\n使用标准库中的命名字符集更易读，且不易出错。\n\n## 示例\n```python\nx = \"0123456789\"\ny in \"abcdefghijklmnopqrstuvwxyz\"\n```\n\n推荐用法\n```python\nimport string\n\nx = string.digits\ny in string.ascii_lowercase\n```\n\n## 参考资料\n- [Python 文档：字符串常量](https://docs.python.org/3/library/string.html#string-constants)\n",
+        "preview": true
+    },
+    "FURB157": {
+        "name": "verbose-decimal-constructor",
+        "linter": "refurb",
+        "summary": "`Decimal` 构造函数中使用繁琐表达式",
+        "message_formats": ["`Decimal` 构造函数中使用繁琐表达式"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查 `Decimal` 构造函数中是否存在不必要的字符串字面量或浮点型强制转换。\n\n## 为何不推荐\n`Decimal` 构造函数支持多种参数类型，包括整数、浮点数和字符串。但向 `Decimal` 传递整数字面量时，无需将其强制转换为字符串。\n\n同样，`Decimal` 接受 `inf`、`-inf` 和 `nan` 作为字符串字面量，因此向 `Decimal` 构造函数传递这些值时，无需包裹在 `float` 调用中。\n\n`Decimal` 构造函数的参数传递方式优先选择更简洁的形式，更易读且符合 Python 惯用写法。\n\n## 示例\n```python\nDecimal(\"0\")\nDecimal(float(\"Infinity\"))\n```\n\n推荐用法：\n```python\nDecimal(0)\nDecimal(\"Infinity\")\n```\n\n## 参考资料\n- [Python 文档：`decimal`](https://docs.python.org/3/library/decimal.html)\n",
+        "preview": true
+    },
+    "FURB161": {
+        "name": "bit-count",
+        "linter": "refurb",
+        "summary": "使用 `bin({existing}).count('1')` 统计位数量",
+        "message_formats": ["使用 `bin({existing}).count('1')` 统计位数量"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `bin(...).count(\"1\")` 执行种群计数（统计二进制中 1 的个数）。\n\n## 为何不推荐\nPython 3.10 中，`int` 类新增了 `bit_count()` 方法，比通过 `bin(...)` 转换为二进制表示的方式更简洁高效。\n\n## 示例\n```python\nx = bin(123).count(\"1\")\ny = bin(0b1111011).count(\"1\")\n```\n\n推荐用法：\n```python\nx = (123).bit_count()\ny = 0b1111011.bit_count()\n```\n\n## 选项\n- `target-version`（目标 Python 版本）\n\n## 参考资料\n- [Python 文档：`int.bit_count`](https://docs.python.org/3/library/stdtypes.html#int.bit_count)\n",
+        "preview": false
+    },
+    "FURB162": {
+        "name": "fromisoformat-replace-z",
+        "linter": "refurb",
+        "summary": "不必要的零偏移时区替换",
+        "message_formats": ["不必要的零偏移时区替换"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查 `datetime.fromisoformat()` 调用，是否存在仅对参数执行 `Z` 替换为零偏移时区的内置操作。\n\n## 为何不推荐\nPython 3.11 及更高版本中，`datetime.fromisoformat()` 支持大多数 [ISO 8601][iso-8601] 格式，包括后缀带有 `Z` 的格式，因此此类操作是不必要的。\n\n关于不支持的格式，可查阅 [官方文档][fromisoformat]。\n\n## 示例\n\n```python\nfrom datetime import datetime\n\n\ndate = \"2025-01-01T00:00:00Z\"\n\ndatetime.fromisoformat(date.replace(\"Z\", \"+00:00\"))\ndatetime.fromisoformat(date[:-1] + \"-00\")\ndatetime.fromisoformat(date.strip(\"Z\", \"-0000\"))\ndatetime.fromisoformat(date.rstrip(\"Z\", \"-00:00\"))\n```\n\n推荐用法：\n\n```python\nfrom datetime import datetime\n\n\ndate = \"2025-01-01T00:00:00Z\"\n\ndatetime.fromisoformat(date)\n```\n\n## 修复安全性\n此修复方案始终标记为不安全，因为可能会改变程序行为。\n\n例如，原本可正常运行的代码可能会失效：\n\n```python\nd = \"Z2025-01-01T00:00:00Z\"  # 注意开头的 `Z`\n\ndatetime.fromisoformat(d.strip(\"Z\") + \"+00:00\")  # 正常运行\ndatetime.fromisoformat(d)  # 运行时错误\n```\n\n## 参考资料\n* [Python 3.11 新特性 &sect; `datetime`](https://docs.python.org/3/whatsnew/3.11.html#datetime)\n* [`fromisoformat`](https://docs.python.org/3/library/datetime.html#datetime.date.fromisoformat)\n\n[iso-8601]: https://www.iso.org/obp/ui/#iso:std:iso:8601\n[fromisoformat]: https://docs.python.org/3/library/datetime.html#datetime.date.fromisoformat\n",
+        "preview": true
+    },
+    "FURB163": {
+        "name": "redundant-log-base",
+        "linter": "refurb",
+        "summary": "优先使用 `math.{log_function}({arg})`，而非带有冗余基数的 `math.log`",
+        "message_formats": [
+            "优先使用 `math.{log_function}({arg})`，而非带有冗余基数的 `math.log`"
+        ],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查 `math.log` 调用是否使用冗余基数。\n\n## 为何不推荐\n`math.log` 的默认基数是 `e`，因此显式指定该基数属于冗余操作。\n\n若需使用基数 2 或 10，应分别使用 `math.log2` 或 `math.log10`，这些专用变体通常比 `math.log` 更精确。\n\n## 示例\n```python\nimport math\n\nmath.log(4, math.e)\nmath.log(4, 2)\nmath.log(4, 10)\n```\n\n推荐用法：\n```python\nimport math\n\nmath.log(4)\nmath.log2(4)\nmath.log10(4)\n```\n\n## 参考资料\n- [Python 文档：`math.log`](https://docs.python.org/3/library/math.html#math.log)\n- [Python 文档：`math.log2`](https://docs.python.org/3/library/math.html#math.log2)\n- [Python 文档：`math.log10`](https://docs.python.org/3/library/math.html#math.log10)\n- [Python 文档：`math.e`](https://docs.python.org/3/library/math.html#math.e)\n",
+        "preview": false
+    },
+    "FURB164": {
+        "name": "unnecessary-from-float",
+        "linter": "refurb",
+        "summary": "`{constructor}` 构造中使用繁琐的 `{method_name}` 方法",
+        "message_formats": [
+            "`{constructor}` 构造中使用繁琐的 `{method_name}` 方法"
+        ],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查 `Decimal` 和 `Fraction` 实例构造中是否存在不必要的 `from_float` 和 `from_decimal` 用法。\n\n## 为何不推荐\n自 Python 3.2 起，`Fraction` 和 `Decimal` 类可直接通过向构造函数传递浮点数或十进制数实例进行构造。因此，`from_float` 和 `from_decimal` 方法已无必要使用，应优先选择更简洁的构造函数语法。\n\n## 示例\n```python\nDecimal.from_float(4.2)\nDecimal.from_float(float(\"inf\"))\nFraction.from_float(4.2)\nFraction.from_decimal(Decimal(\"4.2\"))\n```\n\n推荐用法：\n```python\nDecimal(4.2)\nDecimal(\"inf\")\nFraction(4.2)\nFraction(Decimal(4.2))\n```\n\n## 参考资料\n- [Python 文档：`decimal`](https://docs.python.org/3/library/decimal.html)\n- [Python 文档：`fractions`](https://docs.python.org/3/library/fractions.html)\n",
+        "preview": true
+    },
+    "FURB166": {
+        "name": "int-on-sliced-str",
+        "linter": "refurb",
+        "summary": "移除前缀后，使用带有显式 `base={base}` 的 `int` 函数",
+        "message_formats": [
+            "移除前缀后，使用带有显式 `base={base}` 的 `int` 函数"
+        ],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在移除字符串表达式开头前缀（即 `0b`、`0o` 或 `0x`）后，使用带有显式基数的 `int` 函数的情况。\n\n## 为何不推荐\n对于带有前缀的整数字符串（如 `0xABC`），Python 可通过前缀自动判断整数的基数，无需显式指定。\n\n无需使用 `int(num[2:], 16)`，直接使用 `int(num, 0)` 即可，该方式会根据前缀自动推导基数。\n\n## 示例\n```python\nnum = \"0xABC\"\n\nif num.startswith(\"0b\"):\n    i = int(num[2:], 2)\nelif num.startswith(\"0o\"):\n    i = int(num[2:], 8)\nelif num.startswith(\"0x\"):\n    i = int(num[2:], 16)\n\nprint(i)\n```\n\n推荐用法：\n```python\nnum = \"0xABC\"\n\ni = int(num, 0)\n\nprint(i)\n```\n\n## 修复安全性\n此规则的修复方案标记为不安全，因为 Ruff 无法保证当 `int` 函数调用中包含基数时，其参数仍保持有效。\n\n## 参考资料\n- [Python 文档：`int`](https://docs.python.org/3/library/functions.html#int)\n",
+        "preview": true
+    },
+    "FURB167": {
+        "name": "regex-flag-alias",
+        "linter": "refurb",
+        "summary": "使用正则表达式别名 `re.{}`",
+        "message_formats": ["使用正则表达式别名 `re.{}`"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用正则表达式标志的简写别名（如 `re.I` 而非 `re.IGNORECASE`）。\n\n## 为何不推荐\n正则表达式模块为每个标志提供了描述性名称和单字母别名。优先使用描述性名称，更易读且自文档化。\n\n## 示例\n```python\nimport re\n\nif re.match(\"^hello\", \"hello world\", re.I):\n    ...\n```\n\n推荐用法：\n```python\nimport re\n\nif re.match(\"^hello\", \"hello world\", re.IGNORECASE):\n    ...\n```\n\n",
+        "preview": false
+    },
+    "FURB168": {
+        "name": "isinstance-type-none",
+        "linter": "refurb",
+        "summary": "检查对象是否为 `None` 时，优先使用 `is` 运算符，而非 `isinstance`",
+        "message_formats": [
+            "检查对象是否为 `None` 时，优先使用 `is` 运算符，而非 `isinstance`"
+        ],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `isinstance` 检查对象是否为 `None` 类型。\n\n## 为何不推荐\n`None` 始终只有一个实例，因此使用 `is` 运算符检查对象是否为 `None` 更高效易读。\n\n## 示例\n```python\nisinstance(obj, type(None))\n```\n\n推荐用法：\n```python\nobj is None\n```\n\n## 修复安全性\n若调用中包含任何注释，修复方案将标记为不安全。\n\n## 参考资料\n- [Python 文档：`isinstance`](https://docs.python.org/3/library/functions.html#isinstance)\n- [Python 文档：`None`](https://docs.python.org/3/library/constants.html#None)\n- [Python 文档：`type`](https://docs.python.org/3/library/functions.html#type)\n- [Python 文档：身份比较](https://docs.python.org/3/reference/expressions.html#is-not)\n",
+        "preview": false
+    },
+    "FURB169": {
+        "name": "type-none-comparison",
+        "linter": "refurb",
+        "summary": "检查 `None` 时，使用 `{}` 替代与 `type(None)` 的比较",
+        "message_formats": [
+            "检查 `None` 时，使用 `{}` 替代与 `type(None)` 的比较"
+        ],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `type` 比较对象类型与 `None` 类型。\n\n## 为何不推荐\n`None` 始终只有一个实例，因此使用 `is` 运算符检查对象是否为 `None` 更高效易读。\n\n仅报告名称表达式（如 `type(foo) == type(None)`）。在 [预览模式] 下，此规则还会报告其他类型的表达式。\n\n## 示例\n```python\ntype(obj) is type(None)\n```\n\n推荐用法：\n```python\nobj is None\n```\n\n## 修复安全性\n若修复可能删除注释，则标记为不安全。\n\n## 参考资料\n- [Python 文档：`isinstance`](https://docs.python.org/3/library/functions.html#isinstance)\n- [Python 文档：`None`](https://docs.python.org/3/library/constants.html#None)\n- [Python 文档：`type`](https://docs.python.org/3/library/functions.html#type)\n- [Python 文档：身份比较](https://docs.python.org/3/reference/expressions.html#is-not)\n\n[预览模式]: https://docs.astral.sh/ruff/preview/\n",
+        "preview": false
+    },
+    "FURB171": {
+        "name": "single-item-membership-test",
+        "linter": "refurb",
+        "summary": "对单元素容器进行成员测试",
+        "message_formats": ["对单元素容器进行成员测试"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否对单元素容器（如列表或集合）进行成员测试。\n\n## 为何不推荐\n对仅含单个元素的容器执行成员测试，不如直接与该元素比较更易读高效。\n\n## 示例\n```python\n1 in [1]\n```\n\n推荐用法：\n```python\n1 == 1\n```\n\n## 修复安全性\n\n当右侧为字符串时，修复方案标记为不安全。这是因为 `c in \"a\"` 在 `c` 为 `\"a\"` 或空字符串时均返回 `true`，因此在这些情况下，修复可能会改变程序行为。\n\n此外，若修复范围包含注释，也会标记为不安全。\n\n## 参考资料\n- [Python 文档：比较操作](https://docs.python.org/3/reference/expressions.html#comparisons)\n- [Python 文档：成员测试操作](https://docs.python.org/3/reference/expressions.html#membership-test-operations)\n",
+        "preview": true
+    },
+    "FURB177": {
+        "name": "implicit-cwd",
+        "linter": "refurb",
+        "summary": "查找当前目录时，优先使用 `Path.cwd()` 而非 `Path().resolve()`",
+        "message_formats": [
+            "查找当前目录时，优先使用 `Path.cwd()` 而非 `Path().resolve()`"
+        ],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `Path().resolve()` 查找当前目录。\n\n## 为何不推荐\n查找当前目录时，优先使用 `Path.cwd()` 而非 `Path().resolve()`，因为 `Path.cwd()` 更能明确表达意图。\n\n## 示例\n```python\ncwd = Path().resolve()\n```\n\n推荐用法：\n```python\ncwd = Path.cwd()\n```\n\n## 参考资料\n- [Python 文档：`Path.cwd`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.cwd)\n",
+        "preview": false
+    },
+    "FURB180": {
+        "name": "meta-class-abc-meta",
+        "linter": "refurb",
+        "summary": "使用 `metaclass=abc.ABCMeta` 定义抽象基类",
+        "message_formats": ["使用 `metaclass=abc.ABCMeta` 定义抽象基类"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `metaclass=abc.ABCMeta` 定义抽象基类（ABCs）。\n\n## 为何不推荐\n\n无需使用 `class C(metaclass=abc.ABCMeta): ...`，可通过 `class C(ABC): ...` 定义抽象基类。继承 `ABC` 包装类与设置 `metaclass=abc.ABCMeta` 在语义上完全相同，但更简洁。\n\n## 示例\n```python\nclass C(metaclass=ABCMeta):\n    pass\n```\n\n推荐用法：\n```python\nclass C(ABC):\n    pass\n```\n\n## 参考资料\n- [Python 文档：`abc.ABC`](https://docs.python.org/3/library/abc.html#abc.ABC)\n- [Python 文档：`abc.ABCMeta`](https://docs.python.org/3/library/abc.html#abc.ABCMeta)\n",
+        "preview": true
+    },
+    "FURB181": {
+        "name": "hashlib-digest-hex",
+        "linter": "refurb",
+        "summary": "使用 hashlib 的 `.digest().hex()` 方法",
+        "message_formats": ["使用 hashlib 的 `.digest().hex()` 方法"],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否在 hashlib 哈希对象（如 `sha512`）上使用 `.digest().hex()` 方法。\n\n## 为何不推荐\n从哈希对象生成十六进制摘要时，优先使用 `.hexdigest()` 方法，而非调用 `.digest()` 后再调用 `.hex()`，前者更简洁易读。\n\n## 示例\n```python\nfrom hashlib import sha512\n\nhashed = sha512(b\"some data\").digest().hex()\n```\n\n推荐用法：\n```python\nfrom hashlib import sha512\n\nhashed = sha512(b\"some data\").hexdigest()\n```\n\n## 参考资料\n- [Python 文档：`hashlib`](https://docs.python.org/3/library/hashlib.html)\n",
+        "preview": false
+    },
+    "FURB187": {
+        "name": "list-reverse-copy",
+        "linter": "refurb",
+        "summary": "对列表 `{name}` 赋值 `reversed` 结果",
+        "message_formats": ["对列表 `{name}` 赋值 `reversed` 结果"],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可通过原地操作反转列表，而非创建新列表的情况。\n\n## 为何不推荐\n反转列表时，若不再需要原始列表，使用原地方法 `.reverse()` 比创建新列表更高效。\n\n## 示例\n```python\nl = [1, 2, 3]\nl = reversed(l)\n\nl = [1, 2, 3]\nl = list(reversed(l))\n\nl = [1, 2, 3]\nl = l[::-1]\n```\n\n推荐用法：\n```python\nl = [1, 2, 3]\nl.reverse()\n```\n\n## 修复安全性\n此规则的修复方案标记为不安全，因为对列表调用 `.reverse()` 会原地修改列表，而 `reversed` 会创建新列表，不会改变原始列表。\n\n若列表在其他地方被引用，可能会导致意外行为。\n\n## 参考资料\n- [Python 文档：列表进阶用法](https://docs.python.org/3/tutorial/datastructures.html#more-on-lists)\n",
+        "preview": false
+    },
+    "FURB188": {
+        "name": "slice-to-remove-prefix-or-suffix",
+        "linter": "refurb",
+        "summary": "优先使用 `str.removeprefix()`，而非通过条件判断结合切片替换",
+        "message_formats": [
+            "优先使用 `str.removeprefix()`，而非通过条件判断结合切片替换。",
+            "优先使用 `str.removesuffix()`，而非通过条件判断结合切片替换。"
+        ],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否存在可通过 [`str.removeprefix()`](https://docs.python.org/3/library/stdtypes.html#str.removeprefix) 或 [`str.removesuffix()`](https://docs.python.org/3/library/stdtypes.html#str.removesuffix) 更符合 Python 惯用写法的代码。\n\n具体而言，此规则会标记先通过 `if` 语句使用 `str.startswith()` 或 `str.endswith()` 进行判断，再通过切片操作条件性移除前缀或后缀的代码。\n\n仅当项目目标 Python 版本为 3.9 及以上时，才会应用此规则。\n\n## 为何不推荐\nPython 3.9 新增的 [`str.removeprefix()`](https://docs.python.org/3/library/stdtypes.html#str.removeprefix) 和 [`str.removesuffix()`](https://docs.python.org/3/library/stdtypes.html#str.removesuffix) 方法，具有相同功能且更易读高效。\n\n## 示例\n```python\ndef example(filename: str, text: str):\n    filename = filename[:-4] if filename.endswith(\".txt\") else filename\n\n    if text.startswith(\"pre\"):\n        text = text[3:]\n```\n\n推荐用法：\n```python\ndef example(filename: str, text: str):\n    filename = filename.removesuffix(\".txt\")\n    text = text.removeprefix(\"pre\")\n```\n",
+        "preview": false
+    },
+    "FURB189": {
+        "name": "subclass-builtin",
+        "linter": "refurb",
+        "summary": "继承 `{subclass}` 可能容易出错，改用 `collections.{replacement}`",
+        "message_formats": [
+            "继承 `{subclass}` 可能容易出错，改用 `collections.{replacement}`"
+        ],
+        "fix": "始终有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否继承 `dict`、`list` 或 `str`。\n\n## 为何不推荐\n继承 `dict`、`list` 或 `str` 对象可能容易出错，应使用 `collections` 模块中的 `UserDict`、`UserList` 和 `UserString` 对象替代。\n\n## 示例\n```python\nclass CaseInsensitiveDict(dict): ...\n```\n\n推荐用法：\n```python\nfrom collections import UserDict\n\n\nclass CaseInsensitiveDict(UserDict): ...\n```\n\n## 修复安全性\n此修复方案标记为不安全，因为使用对应的 User 类时，对 `dict`、`list` 和 `str` 类型的 `isinstance()` 检查会失败。\n若需将自定义 `dict` 或 `list` 对象传递给不受自己控制的代码，可忽略此检查。若代码由自己控制，可考虑使用以下类型检查替代：\n\n* `dict` -> `collections.abc.MutableMapping`\n* `list` -> `collections.abc.MutableSequence`\n* `str` -> 无对应替代类型\n\n## 参考资料\n\n- [Python 文档：`collections`](https://docs.python.org/3/library/collections.html)\n",
+        "preview": true
+    },
+    "FURB192": {
+        "name": "sorted-min-max",
+        "linter": "refurb",
+        "summary": "计算序列中的最小值时，优先使用 `min` 而非 `sorted()`",
+        "message_formats": [
+            "计算序列中的最小值时，优先使用 `min` 而非 `sorted()`",
+            "计算序列中的最大值时，优先使用 `max` 而非 `sorted()`"
+        ],
+        "fix": "部分场景下有可用修复方案。",
+        "explanation": "## 功能说明\n检查是否使用 `sorted()` 获取序列中的最小值或最大值。\n\n## 为何不推荐\n使用 `sorted()` 计算序列中的最小值或最大值效率低且可读性差，直接使用 `min()` 或 `max()` 更优。\n\n## 示例\n```python\nnums = [3, 1, 4, 1, 5]\nlowest = sorted(nums)[0]\nhighest = sorted(nums)[-1]\nhighest = sorted(nums, reverse=True)[0]\n```\n\n推荐用法：\n```python\nnums = [3, 1, 4, 1, 5]\nlowest = min(nums)\nhighest = max(nums)\n```\n\n## 修复安全性\n在某些情况下，迁移到 `min` 或 `max` 可能会导致行为变化，尤其是在存在平局时。\n\n例如，`sorted(data, key=itemgetter(0), reverse=True)[0]` 会返回列表中最后一个具有相同键的\"最小值\"元素；而在相同场景下，`min(data, key=itemgetter(0))` 会返回第一个\"最小值\"元素。\n\n因此，当使用 `reverse` 关键字时，此规则的修复方案标记为不安全。\n\n## 参考资料\n- [Python 文档：`min`](https://docs.python.org/3/library/functions.html#min)\n- [Python 文档：`max`](https://docs.python.org/3/library/functions.html#max)\n",
+        "preview": true
     }
 }

@@ -36,20 +36,37 @@ function getCurrentLanguage(): SupportedLanguage {
     return "en";
 }
 
-export function t(rule: RuffRule, field: TranslationField): string | string[] {
+interface TranslationResult {
+    translation: Partial<RuffRule> | undefined;
+    lang: SupportedLanguage;
+}
+
+function getTranslation(code: string): TranslationResult {
     const lang = getCurrentLanguage();
 
-    const zhTranslation = zhCNTranslations[rule.code];
-    if (zhTranslation && (zhTranslation as any)[field] !== undefined) {
-        return (zhTranslation as any)[field];
+    if (lang === "zh-CN" && zhCNTranslations[code]) {
+        return { translation: zhCNTranslations[code], lang };
     }
 
-    const enTranslation = enTranslations[rule.code];
-    if (enTranslation && (enTranslation as any)[field] !== undefined) {
-        return (enTranslation as any)[field];
+    if (enTranslations[code]) {
+        return { translation: enTranslations[code], lang: "en" };
     }
 
-    return (rule as any)[field] ?? "";
+    return { translation: undefined, lang };
+}
+
+function getFieldValue<T>(rule: RuffRule, field: TranslationField): T {
+    const { translation } = getTranslation(rule.code);
+
+    if (translation && (translation as any)[field] !== undefined) {
+        return (translation as any)[field];
+    }
+
+    return (rule as any)[field];
+}
+
+export function t(rule: RuffRule, field: TranslationField): string | string[] {
+    return getFieldValue<string | string[]>(rule, field);
 }
 
 export function getExplanation(rule: RuffRule): string {
@@ -72,21 +89,24 @@ export function getFix(rule: RuffRule): string {
     return t(rule, "fix") as string;
 }
 
+function getLinterExplanationText(code: string): string | undefined {
+    const { translation } = getTranslation(code);
+    return translation?.explanation;
+}
+
+function getNoExplanationMessage(lang: SupportedLanguage): string {
+    return lang === "zh-CN"
+        ? "（暂无详细解释）"
+        : " (No detailed explanation available)";
+}
+
 export function getLinterExplanation(linterCode: string): string {
     const lang = getCurrentLanguage();
+    const explanation = getLinterExplanationText(linterCode);
 
-    const zhTranslation = zhCNTranslations[linterCode];
-    if (zhTranslation?.explanation) {
-        return zhTranslation.explanation;
+    if (explanation) {
+        return explanation;
     }
 
-    const enTranslation = enTranslations[linterCode];
-    if (enTranslation?.explanation) {
-        return enTranslation.explanation;
-    }
-
-    if (lang === "zh-CN") {
-        return `${linterCode}（暂无详细解释）`;
-    }
-    return `${linterCode} (No detailed explanation available)`;
+    return `${linterCode}${getNoExplanationMessage(lang)}`;
 }
