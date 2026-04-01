@@ -11,7 +11,7 @@
         "Other"
     ],
     "repository": "https://github.com/morning-start/ruff-helper",
-    "icon": "logo.png",
+    "icon": "logo.jpg",
     "activationEvents": [
         "onLanguage:toml"
     ],
