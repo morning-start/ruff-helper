@@ -12,9 +12,8 @@ vsc-extension-quickstart.md
 **/*.ts
 **/.vscode-test.*
 .agents/
-skills/
-documents/
-specs/
-.trae/
+**/skills/
+**/documents/
+**/specs/
 *.vsix
 .direnv
